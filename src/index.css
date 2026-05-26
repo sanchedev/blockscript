@@ -1,0 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Cascadia+Code:ital@0;1&display=swap');
+
+@import 'tailwindcss';
+
+@theme {
+  --font-mono:
+    'Cascadia Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+}
