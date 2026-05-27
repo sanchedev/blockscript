@@ -1,6 +1,6 @@
 # BlockScript
 
-Editor visual de programación por bloques construido con React 19, TypeScript 6, Vite 8 y TailwindCSS 4.
+Editor visual de programación por bloques. React 19 + TypeScript 6 + Vite 8 + TailwindCSS 4 + Zustand 5.
 
 ## Stack
 
@@ -9,51 +9,28 @@ Editor visual de programación por bloques construido con React 19, TypeScript 6
 - **Vite 8** — build tool
 - **TailwindCSS 4** — estilos
 - **Zustand 5** — solo sidebar
+- **react-zoom-pan-pinch** — zoom/pan canvas
 - **@tabler/icons-react** — iconos
 
 ## Comandos
 
 ```bash
-pnpm dev       # servidor de desarrollo
+pnpm dev       # dev server
 pnpm build     # tsc -b && vite build
 pnpm lint      # eslint
-pnpm preview   # preview de producción
+pnpm preview   # vite preview
 ```
 
 ## Arquitectura
 
-El editor se organiza en dos categorías principales:
-
-### Statements (11)
-Sentencias de control de flujo: If/ElseIf/Else, While, DoWhile, For, Print, Variable, Expr, Block. Usan indices path-based para CRUD (`addAt`, `removeAt`, `replaceAt`, `move`, `updateAt`).
-
-### Expressions (16)
-Valores, operaciones aritméticas, comparaciones, lógica, variables, asignaciones, conversión de tipos y entrada. Organizadas en subdirectorios por grupo (`valores/`, `operaciones/`, `variables/`, `conversion/`).
-
-### Grupos de sidebar
-
-| Grupo (expresiones) | Color |
-|---|---|
-| Valores | amber |
-| Operaciones | red |
-| Variables | purple |
-| Conversión | orange |
-
-| Grupo (statements) | Color |
-|---|---|
-| Expresiones | sky |
-| Variables | cyan |
-| Salida | green |
-| Condicionales | rose |
-| Bucles | amber |
-
-### Validación e interpretación
-
-- **Validator**: scoping padre-hijo con `Defineds`. Soporta todos los tipos de statement y expresión con chequeo de tipos.
-- **Interpreter**: evalúa dinámicamente usando `peek()`/`next()` para condicionales encadenados (sibling pattern).
-
-### Persistencia
-
-- Auto-guarda en `localStorage` cada 5 segundos y al ejecutar
-- Exportar/Importar archivos `.bs`
-- Serialización genérica via `serialize()`/`deserialize()`
+- **Statements** (11 clases): `IfStmt`, `ElseIfStmt`, `ElseStmt`, `WhileStmt`, `DoWhileStmt`, `ForStmt`, `PrintStmt`, `VariableStmt`, `ExprStmt`, `BlockStmt`, `Stmt` (abstract).
+- **Expressions** (16 clases): literales, operaciones binarias/lógicas, variables/asignación, conversión. Organizadas en `valores/`, `operaciones/`, `variables/`, `conversion/`.
+- **Entrypoint**: `src/main.tsx` → `App.tsx` → `Header` + `Entry` (editor con zoom/pan) + `Sidebar` + `Console`.
+- **CRUD**: basado en path de índices (`addAt`, `removeAt`, `replaceAt`, `move`, `updateAt`, `replaceStmt`).
+- **Colores**: sistema centralizado en `src/lib/theme.ts` con `blockColorMap` (para bloques) y `sectionColorMap` (para sidebar), ambos definidos con strings literales completas para detección de Tailwind.
+- **Grupos**: tanto statements como expressions usan `GroupConfig` con `{ title, items, blockColor, sectionColor, icon }` en `Record<EnumKey, GroupConfig>`.
+  - Statements: `StatementsGroupKey` (`Expresiones`, `Variables`, `Salida`, `Condicionales`, `Bucles`)
+  - Expressions: `ExpressionsGroupKey` (`Valores`, `Operaciones`, `Variables`, `Conversion`)
+- **Colores por tipo**: `typeStyles(type: PrimaryType)` en `src/lib/type-styles.ts` deriva bg/text/border/ring del tipo de dato.
+- **SEO**: meta tags, Open Graph, Twitter Cards, robots.txt, sitemap.xml, manifest.json PWA.
+- **Persistencia**: auto-guarda en localStorage cada 5s + al ejecutar. Export/import `.bs` via `serialize()`/`deserialize()`.

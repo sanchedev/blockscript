@@ -14,20 +14,20 @@ pnpm preview      # vite preview
 ## Arquitectura
 
 - **Statements** (`src/lib/blocks/statements/classes/`) — `Stmt` (abstract, `id: string`, `name: Statements`), `BlockStmt` (raíz con `children: Stmt[]`), `ExprStmt`, `PrintStmt`, `VariableStmt`, `IfStmt`, `ElseIfStmt`, `ElseStmt`, `WhileStmt`, `DoWhileStmt`, `ForStmt`
-  - Registros en `records/`: `classes.ts`, `labels.ts`, `groups.ts`, `section-styles.ts`
+  - Registros en `records/`: `classes.ts`, `labels.ts`, `groups.ts`
   - Enum `Statements` incluye `Stmt`, `Expr`, `Print`, `Variable`, `Block`, `If`, `ElseIf`, `Else`, `While`, `DoWhile`, `For`
 - **Expressions** (`src/lib/blocks/expressions/classes/`) — `Expr` (abstract, `type: PrimaryType`), más 16 clases concretas organizadas en subdirectorios por grupo:
   - `valores/`: NumberLiteralExpr, StringLiteralExpr, BooleanLiteralExpr, NullLiteralExpr, ReadExpr
   - `operaciones/`: BinaryExpr, BinaryCompExpr, LogicalExpr
   - `variables/`: VariableExpr, AssignExpr, AssignOpExpr, IncrementExpr
   - `conversion/`: ConcatExpr, ToStringExpr, ToNumberExpr, ToBooleanExpr
-  - Registros en `records/`: `classes.ts`, `labels.ts`, `groups.ts`, `section-styles.ts`
+  - Registros en `records/`: `classes.ts`, `labels.ts`, `groups.ts`
   - Enum `Expressions` con 16 valores (incluye `AssignOp`, `Increment`, `ToNumber`, `ToBoolean`, `Logical`)
 - **Componentes de expresiones** (`src/components/blocks/expressions/`) — mismo mirror de directorios que `classes/`:
   - `valores/`, `operaciones/`, `variables/`, `conversion/` con sus respectivos `.tsx`
 - **State**: no hay stores Zustand (excepto `sidebar-store`). Statements vía `GlobalStmtCtx` (context) + `GlobalStmtProvider`. Errores vía `ErrorCtx` + `ErrorProvider`. Output vía `OutputCtx` + `OutputProvider`. Location vía `LocationCtx` anidado con `LocationProvider`.
 - **CRUD de statements**: basado en path de índices (`addAt`, `removeAt`, `replaceAt`, `move`, `updateAt`, `replaceStmt`), no en líneas. Los paths recorren `BlockStmt.children`. El hook `useGlobalStmt` resuelve automáticamente el path desde `LocationCtx`. `replaceStmt(stmt)` reemplaza el árbol completo (usado por importar/nuevo).
-- **Entrypoint**: `src/main.tsx` → `App.tsx` → `Entry` (editor) + `Sidebar`
+- **Entrypoint**: `src/main.tsx` → `App.tsx` → `Header` + `Entry` (editor con zoom/pan via `react-zoom-pan-pinch`) + `Sidebar` + `Console`
 - **Tipos**: `PrimaryType` enum con `número`, `texto`, `V / F`, `nulo`. `Expr.type` se asigna estáticamente en cada clase.
 - **Validator** (`src/lib/validator/validator.ts` + `defineds.ts`): `Defineds` class con scoping padre-hijo (soporta `BlockStmt` anidados). `validate()` recorre recursivamente, incluyendo hijos de `BlockStmt`.
   - IfStmt: valida `condition` tipo `V / F`, valida `thenBody` recursivamente, luego camina hermanos `ElseIfStmt`/`ElseStmt` con `statements[i + 1]`.
@@ -38,20 +38,25 @@ pnpm preview      # vite preview
 - **Interpreter** (`src/lib/interpreter.ts`): `executeStatements()` usa `peek()`/`next()` dinámicos. `executeIfStmt()` evalúa condición, ejecuta `thenBody`, luego recorre hermanos `ElseIfStmt`/`ElseStmt` con `peek()`/`next()` y flag `hasExecuted` para cortocircuito. `executeWhileStmt()` evalúa condición y ejecuta `body.children` en loop mientras sea verdadera. `executeDoWhileStmt()` ejecuta body al menos una vez. `executeForStmt()` evalúa start/end/step, loop con incremento (soporta step negativo).
 - **Condicionales (sibling pattern)**: IfStmt, ElseIfStmt y ElseStmt viven como hermanos en `BlockStmt.children[]` (no como linked list con `elseBody`). El intérprete y validador usan `peek()`/`next()` y `statements[i + 1]` para consumirlos secuencialmente.
 - **Eventos**: `editorChanged`, `sidebarInfoRecieved`, `sidebarInfoSended` — pub/sub con `Event<T>` class.
-- **Sidebar**: event-driven request/response vía `useSidebarStore.send()`. Componentes pasan opciones, callback, y `style?: SectionStyle` (resuelto de mapas `allSectionStyles` en `sidebar.tsx`). Secciones con `{ key, title, stmts/exprs }[]`.
+- **Sidebar**: event-driven request/response vía `useSidebarStore.send()`. Componentes pasan `{ title, style, icon, options }[]` donde `icon` se renderiza en el tab. Las secciones se construyen desde `statementsGroups`/`expressionsGroups` (cada grupo tiene su `sectionColor` que resuelve a `sectionColorMap`).
 - **ExprCtx**: provee `{ expr, parent, edit }` a componentes de expresión. Los hijos llaman `edit(newExpr)` para reemplazar, y `updateAt()` para persistir.
 - **Hooks útiles**: `useVariableIdentifiers()` recolecta variables definidas en ámbito. `useVariableType()` devuelve función `(id) => Type` para resolver tipo de variable. `useVariableUpdateReferences(oldId, newId, type)` renombra y actualiza tipo de todas las `VariableExpr`/`AssignExpr` que referencian `oldId`, recorriendo recursivamente statements y sub-expresiones vía `exploreToVariableExprs()`.
   - **⚠️ `exploreToVariableExprs()` no atraviesa `condition`/`thenBody`/`body` de IfStmt/ElseIfStmt/ElseStmt/WhileStmt/DoWhileStmt** — renombrar variables no encontrará referencias dentro de condicionales/bucles.
-- **Colores**: mapa central `typeStyles[PrimaryType]` en `src/lib/type-styles.ts` (`bg`, `text`, `border`, `ring`). `ExprBlock` deriva `bg`/`text`/`border` directamente de `expr.type`. Componentes hijos solo especifican overrides cuando el tipo es dinámico (VariableExpr, AssignExpr, BinaryCompExpr, ReadExpr).
-- **VariableExpr.edit(identifier, type)**: segundo parámetro `type` es obligatorio para actualizar `expr.type` (requerido por el validator al validar expresiones contenedoras como `BinaryExpr`).
-- **AssignExpr.copy()**: preserva `expr.type` (no se pierde tras `updateAt`).
-- **UI components**: `Button` (`src/components/ui/button.tsx`) con props `size`, `shape`, `variant`. `Input` (`src/components/blocks/ui/input.tsx`) con estilos base. `Confirm` (`src/components/ui/confirm.tsx`) diálogo modal con `title`, `description`, `onAccept`, `onCancel`, `open`. Usados en lugar de `<button>`/`<input>` raw.
+- **Colores de statements**: los colores se definen por grupo en `src/lib/blocks/statements/records/groups.ts` via `blockColor`. `StmtBlock` resuelve `blockColorMap[group.blockColor]` para bg/text/border.
+- **Colores de expresiones**: `typeStyles(type: PrimaryType)` en `src/lib/type-styles.ts` (`bg`, `text`, `border`, `ring`). `ExprBlock` deriva colores directamente de `expr.type`.
+- **Theme system** (`src/lib/theme.ts`): `blockColorMap` y `sectionColorMap` con strings literales completas (p.ej. `bg-sky-200 text-sky-900 border-sky-400`). Tailwind las detecta en build porque son literales en el source.
+- **VariableExpr.edit(identifier, type)**: segundo parámetro `type` es obligatorio para actualizar `expr.type`.
+- **AssignExpr.copy()**: preserva `expr.type`.
+- **UI components**: `Button` (`src/components/ui/button.tsx`) con props `size`, `shape`, `variant`. `Input` (`src/components/blocks/ui/input.tsx`) con estilos base. `Confirm` (`src/components/ui/confirm.tsx`) diálogo modal con `title`, `description`, `onAccept`, `onCancel`, `open`.
 - **No hay tests** configurados.
-- **Iconos**: `@tabler/icons-react`. CSS condicional: `clsx`. Font: Cascadia Code via Google Fonts.
+- **Iconos**: `@tabler/icons-react`. `GroupConfig` incluye `icon` de tipo `ComponentType`.
+- **Font**: Cascadia Code via Google Fonts (preconnect en index.html).
 - **Formato valores**: `null` → `'nulo'`, `boolean` → `'verdadero'/'falso'`, resto → `String(value)`.
 - **IDs**: `crypto.randomUUID()` en constructor de `Stmt`, preservado en `copy()`.
 - **Serializer** (`src/lib/serializer.ts`): `serialize(node)` recorre `Object.keys` y aplane recursivamente Stmt/Expr a JSON. `deserialize(data)` usa `statementsClasses`/`expressionsClasses` para reconstruir el árbol. Soporta todos los tipos de Stmt/Expr automáticamente.
 - **Persistence**: `GlobalStmtProvider` auto-guarda en `localStorage` (`blockscript-save`) cada 5 segundos con debounce. `OutputProvider` guarda también al ejecutar (`run()`). Estado inicial se carga desde `localStorage`. `usePersistence(stmt)` provee `exportToFile()` que descarga `blockscript-YYYY-MM-DD.bs`.
+- **Zoom/Pan**: `react-zoom-pan-pinch` con `TransformWrapper` + `TransformComponent`. Zoom con rueda+Ctrl o botones. Botón de reset centrado.
+- **SEO**: `index.html` con `lang=es`, meta description, Open Graph, Twitter Cards, canonical. `public/robots.txt`, `public/sitemap.xml`, `public/manifest.json` (PWA).
 
 ## Expresiones (16)
 
@@ -115,40 +120,38 @@ pnpm preview      # vite preview
 
 ## Colores
 
-Los colores de expresiones se derivan exclusivamente de `PrimaryType` vía `typeStyles[expr.type]` en `src/lib/type-styles.ts` (`bg`, `text`, `border`, `ring`). `ExprBlock` deriva `bg`/`text`/`border` directamente de `expr.type`. Componentes hijos solo especifican overrides cuando el tipo es dinámico (VariableExpr, AssignExpr, BinaryCompExpr, ReadExpr).
+Los colores de expresiones se derivan exclusivamente de `PrimaryType` vía `typeStyles(expr.type)` en `src/lib/type-styles.ts` (`bg`, `text`, `border`, `ring`). `ExprBlock` deriva `bg`/`text`/`border` directamente de `expr.type`. Componentes hijos solo especifican overrides cuando el tipo es dinámico (VariableExpr, AssignExpr, BinaryCompExpr, ReadExpr).
 
 | PrimaryType | Bg | Text | Ring | Expresiones que lo usan |
 |---|---|---|---|---|
-| `número` | `bg-red-300` | `text-red-800` | `ring-red-400` | NumberLiteral, Binary, ToNumber |
-| `texto` | `bg-lime-300` | `text-lime-800` | `ring-lime-400` | StringLiteral, Concat, ToString, Read |
-| `V / F` | `bg-purple-300` | `text-purple-800` | `ring-purple-400` | BooleanLiteral, BinaryComp, ToBoolean, Logical |
-| `nulo` | `bg-amber-300` | `text-amber-800` | `ring-amber-400` | NullLiteral |
+| `número` | `bg-red-200` | `text-red-800` | `ring-red-300` | NumberLiteral, Binary, ToNumber |
+| `texto` | `bg-lime-200` | `text-lime-800` | `ring-lime-400` | StringLiteral, Concat, ToString, Read |
+| `V / F` | `bg-purple-200` | `text-purple-800` | `ring-purple-300` | BooleanLiteral, BinaryComp, ToBoolean, Logical |
+| `nulo` | `bg-amber-200` | `text-amber-800` | `ring-amber-300` | NullLiteral |
 
 **VariableExpr** y **AssignExpr**: color dinámico según el tipo de la variable declarada (resuelto con `useVariableType()` o `expr.type`).
 
-Statements usan colores fijos (no tipados):
+Statements usan colores por grupo (definidos en `groups.ts` via `blockColor`):
 
-| Stmt | Bg | Border |
-|---|---|---|
-| PrintStmt | `bg-green-300` | `border-green-500` |
-| VariableStmt | `bg-cyan-300` | `border-cyan-500` |
-| ExprStmt | `bg-sky-300` | `border-sky-500` |
-| IfStmt/ElseIfStmt/ElseStmt | `bg-rose-300` | `border-rose-500` |
-| WhileStmt | `bg-amber-300` | `border-amber-500` |
-| DoWhileStmt | `bg-amber-300` | `border-amber-500` |
-| ForStmt | `bg-amber-300` | `border-amber-500` |
+| Statement | Grupo | Bg | Border |
+|---|---|---|---|
+| ExprStmt | Expresiones | `bg-sky-200` | `border-sky-400` |
+| VariableStmt | Variables | `bg-cyan-200` | `border-cyan-400` |
+| PrintStmt | Salida | `bg-green-200` | `border-green-400` |
+| IfStmt/ElseIfStmt/ElseStmt | Condicionales | `bg-rose-200` | `border-rose-400` |
+| WhileStmt/DoWhileStmt/ForStmt | Bucles | `bg-amber-200` | `border-amber-400` |
 
 ## Grupos de sidebar (section-styles)
 
-Los grupos de sidebar tienen `style` opcional definido en `section-styles.ts`:
+Los colores de sidebar se derivan de `sectionColorMap` en `src/lib/theme.ts`. Cada grupo define su `sectionColor`:
 
-| Grupo | key | style |
+| Grupo | key | sectionColor |
 |---|---|---|
 | (expresiones) Valores | `valores` | amber |
 | (expresiones) Operaciones | `operaciones` | red |
 | (expresiones) Variables | `variables` | purple |
 | (expresiones) Conversión | `conversion` | orange |
-| (statements) Expresiones | `expresiones` | sky |
+| (statements) Expresiones | `expresiones` | blue |
 | (statements) Variables | `variables` | cyan |
 | (statements) Salida | `salida` | green |
 | (statements) Condicionales | `condicionales` | rose |
