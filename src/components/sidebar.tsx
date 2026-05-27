@@ -4,6 +4,7 @@ import { sidebarInfoSended } from '../lib/event/events'
 import { useSidebarStore } from '../stores/sidebar-store'
 import { Button } from './ui/button'
 import { useState } from 'react'
+import type { SectionStyle } from '../lib/blocks/shared/group-types'
 
 export function Sidebar() {
   const [index, setIndex] = useState(0)
@@ -26,15 +27,7 @@ export function Sidebar() {
   const selected = info.sections[index]
 
   return (
-    <aside
-      className={clsx(
-        'relative w-sm border-2 m-4 rounded-xl p-4 flex flex-col gap-4 transition-colors',
-        {
-          'bg-slate-100 border-slate-300': selected.style == null,
-          [`${selected.style?.bg} ${selected.style?.border} ${selected.style?.text}`]:
-            selected.style != null,
-        },
-      )}>
+    <aside className='fixed z-30 top-16 left-0 bottom-0 w-md max-w-[100vw] flex transition-colors bg-white border-r-2 border-gray-200 shadow'>
       <Button
         aria-label='Cerrar'
         size='sm'
@@ -43,24 +36,28 @@ export function Sidebar() {
         hidden={!info.optional}>
         <IconX className='size-4' onClick={handleClose} />
       </Button>
-      <ul className='absolute origin-bottom-right bottom-full right-full -rotate-90 flex gap-2 items-end pr-4 max-w-[calc(100vh-2rem)] overflow-x-auto scrollbar-thumb-slate-200 scrollbar-track-slate-50'>
-        {info.sections.map(({ title, style }, i) => (
+      <ul className='flex flex-col w-20 p-2 gap-1 h-full border-r-2 border-gray-200'>
+        {info.sections.map(({ title, style, icon: Icon }, i) => (
           <li key={'section-' + title}>
             <button
               className={clsx(
-                'min-w-20 border-2 outline-0 focus-visible:ring-2 rounded-t-xl px-4 transition-all',
-                style && [style.border, style.header, style.ring].join(' '),
-                style == null &&
-                  'bg-white hover:bg-slate-100 border-slate-200 ring-gray-300',
-                index === i ? 'h-10' : 'h-8',
+                'size-16 not-hover:not-focus-visible:bg-white rounded-lg border-2 not-hover:not-focus-visible:border-slate-200 outline-none focus-visible:ring-2 transition-all text-center overflow-hidden flex flex-col justify-center items-center hover:shadow p-1 active:scale-95 active:shadow-none',
+                style &&
+                  [style.text, style.ring, style.bg, style.border].join(' '),
               )}
               onClick={() => setIndex(i)}>
-              {title}
+              {Icon != null && <Icon />}
+              <div className='overflow-hidden w-full'>
+                <span className='block text-[0.625rem] font-bold text-nowrap overflow-hidden text-ellipsis'>
+                  {title}
+                </span>
+              </div>
             </button>
           </li>
         ))}
       </ul>
       <SidebarSection
+        key={selected.title}
         title={selected.title}
         options={selected.options}
         style={selected.style}
@@ -68,14 +65,6 @@ export function Sidebar() {
       />
     </aside>
   )
-}
-
-interface SectionStyle {
-  bg: string
-  text: string
-  border: string
-  ring: string
-  header: string
 }
 
 interface SidebarSectionProps {
@@ -89,28 +78,40 @@ interface SSOption {
   value: string
 }
 
-function SidebarSection({
-  title,
-  options,
-  style,
-  onSelect,
-}: SidebarSectionProps) {
+function SidebarSection({ options, style, onSelect }: SidebarSectionProps) {
+  const [search, setSearch] = useState('')
+
   return (
-    <section>
-      <h2 className='text-2xl px-2 py-1 rounded-lg mb-2'>{title}</h2>
-      <ul className='rounded-xl p-2 flex flex-col gap-1'>
-        {options.map((o) => (
-          <li key={o.value}>
-            <Button
-              className={clsx(
-                `${style?.bg} ${style?.border} ${style?.border} not-disabled:hover:brightness-95 ${style?.ring} ${style?.text} w-full text-start`,
-              )}
-              variant={style == null ? 'normal' : 'free'}
-              onClick={() => onSelect?.(o.value)}>
-              {o.label}
-            </Button>
-          </li>
-        ))}
+    <section className='w-full p-4 flex flex-col gap-4'>
+      <input
+        type='text'
+        className='w-full rounded-xl bg-white border-2 border-slate-200 outline-0 focus-visible:ring-2 ring-slate-300 h-12 px-4 py-2'
+        placeholder='Buscar...'
+        value={search}
+        onChange={(ev) => setSearch(ev.target.value)}
+      />
+      <ul className='flex flex-col gap-2'>
+        {options.map(
+          (o) =>
+            o.label.toLowerCase().includes(search.toLowerCase()) && (
+              <li key={o.value}>
+                <Button
+                  className={clsx(
+                    style &&
+                      `not-hover:not-focus-visible:bg-white rounded-lg border-2 not-hover:not-focus-visible:border-slate-200 outline-none focus-visible:ring-2 transition-colors w-full text-start ${[
+                        style.text,
+                        style.ring,
+                        style.bg,
+                        style.border,
+                      ].join(' ')}`,
+                  )}
+                  variant={style == null ? 'normal' : 'free'}
+                  onClick={() => onSelect?.(o.value)}>
+                  {o.label}
+                </Button>
+              </li>
+            ),
+        )}
       </ul>
     </section>
   )

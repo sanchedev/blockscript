@@ -19,7 +19,7 @@ export function Confirm({
   if (!open) return
 
   return createPortal(
-    <div className='fixed inset-0 z-20'>
+    <div className='fixed inset-0 z-50'>
       <div
         className='w-full h-full backdrop-blur-xs bg-black/20'
         onClick={() => onCancel?.()}

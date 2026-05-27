@@ -1,4 +1,6 @@
+import { Console } from './components/console'
 import { Entry } from './components/entry'
+import { Header } from './components/header'
 import { Sidebar } from './components/sidebar'
 import { ErrorProvider } from './providers/error'
 import { GlobalStmtProvider } from './providers/global-stmt'
@@ -9,10 +11,12 @@ function App() {
     <GlobalStmtProvider>
       <ErrorProvider>
         <OutputProvider>
-          <div className='flex w-full h-screen bg-white text-slate-950'>
+          <Header />
+          <div className='flex w-full h-screen max-w-screen overflow-hidden bg-white text-slate-950'>
             <Entry />
-            <Sidebar />
           </div>
+          <Sidebar />
+          <Console />
         </OutputProvider>
       </ErrorProvider>
     </GlobalStmtProvider>

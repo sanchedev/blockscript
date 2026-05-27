@@ -2,7 +2,7 @@ import clsx from 'clsx'
 
 export type ButtonSize = 'sm' | 'md'
 export type ButtonShape = 'rectangle' | 'square' | 'circle'
-export type ButtonVariant = 'normal' | 'destructive' | 'free'
+export type ButtonVariant = 'normal' | 'primary' | 'destructive' | 'free'
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: ButtonSize
@@ -22,6 +22,8 @@ export function Button(props: ButtonProps) {
         {
           'border-slate-200 bg-white not-disabled:hover:bg-slate-100 ring-slate-300 text-slate-800':
             variant === 'normal',
+          'border-slate-900 bg-slate-800 not-disabled:hover:bg-slate-900 ring-slate-950 text-slate-200':
+            variant === 'primary',
           'border-red-200 bg-white not-disabled:hover:bg-red-100 ring-red-300 text-red-800':
             variant === 'destructive',
         },
