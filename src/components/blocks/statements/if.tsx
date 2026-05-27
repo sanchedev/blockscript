@@ -9,7 +9,7 @@ export function IfStmtComp(props: StmtCompProps<IfStmt>) {
     <div>
       <StmtBlock
         {...props}
-        className='bg-rose-300 border-rose-500 text-rose-800 rounded-b-none w-full'>
+        className='rounded-b-none w-full'>
         <div className='pl-2 flex gap-4 items-center'>
           <span>si</span>
           <ExprComp

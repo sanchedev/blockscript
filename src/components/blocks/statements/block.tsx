@@ -7,19 +7,23 @@ import { StmtComp } from './stmt'
 import { LocationProvider } from '../../../providers/location'
 import { useGlobalStmt } from '../../../hooks/global-stmt'
 import { useSidebarStore } from '../../../stores/sidebar-store'
-import { statementsGroups } from '../../../lib/blocks/statements/records/groups'
+import {
+  statementsGroups,
+  StatementsGroupKey,
+} from '../../../lib/blocks/statements/records/groups'
 import { statementsLabels } from '../../../lib/blocks/statements/records/labels'
 import { statementsClasses } from '../../../lib/blocks/statements/records/classes'
 import type { Statements } from '../../../lib/blocks/statements/enum'
 import { Button } from '../../ui/button'
-import { sectionStyles } from '../../../lib/blocks/statements/records/section-styles'
 import clsx from 'clsx'
+import { sectionColorMap } from '../../../lib/theme'
 
 export function BlockStmtComp(
   props: StmtCompProps<BlockStmt> & {
     main?: boolean
     removeRoundedTop?: boolean
     removeRoundedBottom?: boolean
+    fit?: boolean
   },
 ) {
   const { getErrorByLocation } = useError()
@@ -38,6 +42,7 @@ export function BlockStmtComp(
           'rounded-t-none': props.removeRoundedTop,
           'rounded-b-none': props.removeRoundedBottom,
         },
+        props.fit && 'w-fit',
       )}>
       {props.stmt.children.map((stmt, i) => {
         const line = i + 1
@@ -67,10 +72,16 @@ export function BlockStmtComp(
         title='Agrega un bloque'
         onClick={async () => {
           send(
-            statementsGroups.map(({ key, title, stmts }) => ({
-              style: sectionStyles[key as keyof typeof sectionStyles],
+            (
+              Object.entries(statementsGroups) as [
+                StatementsGroupKey,
+                (typeof statementsGroups)[StatementsGroupKey],
+              ][]
+            ).map(([key, { title, items, sectionColor, icon }]) => ({
+              style: sectionColorMap[sectionColor],
               title,
-              options: stmts.map((stmt) => ({
+              icon,
+              options: items.map((stmt) => ({
                 label: statementsLabels[stmt],
                 value: stmt,
               })),

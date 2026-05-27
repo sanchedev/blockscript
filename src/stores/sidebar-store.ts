@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { sidebarInfoSended } from '../lib/event/events'
+import type { ComponentType } from 'react'
 
 interface SectionStyle {
   bg: string
@@ -13,6 +14,7 @@ export interface SidebarInfo {
   sections: {
     title: string
     style?: SectionStyle
+    icon?: ComponentType<{ className?: string }>
     options: {
       label: string
       value: string

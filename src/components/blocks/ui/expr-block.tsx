@@ -8,7 +8,7 @@ import type { ExprCompProps } from '../expressions/types'
 import { useGlobalStmt } from '../../../hooks/global-stmt'
 import { Button } from '../../ui/button'
 import { typeStyles } from '../../../lib/type-styles'
-import { sectionStyles } from '../../../lib/blocks/expressions/records/section-styles'
+import { sectionColorMap } from '../../../lib/theme'
 
 interface ExprBlockProps
   extends React.HTMLAttributes<HTMLDivElement>, ExprCompProps {}
@@ -21,11 +21,17 @@ export function ExprBlock({ edit, expr, ...props }: ExprBlockProps) {
 
   const handleReplace = () => {
     send(
-      expressionsGroups
-        .map(({ key, title, exprs }) => ({
-          style: sectionStyles[key as keyof typeof sectionStyles],
+      (
+        Object.entries(expressionsGroups) as [
+          string,
+          (typeof expressionsGroups)[keyof typeof expressionsGroups],
+        ][]
+      )
+        .map(([, { title, items, sectionColor, icon }]) => ({
+          style: sectionColorMap[sectionColor],
           title,
-          options: exprs.flatMap((value) =>
+          icon,
+          options: items.flatMap((value) =>
             value === expr.name
               ? []
               : {
@@ -54,9 +60,9 @@ export function ExprBlock({ edit, expr, ...props }: ExprBlockProps) {
       {...props}
       className={clsx(
         'border-l-2 rounded-xl h-fit flex flex-row items-center w-min hover:[&>.tools]:w-10 hover:[&>.tools]:ml-0 hover:[&>.tools]:opacity-100 hover:[&>.tools]:rotate-0 shadow shadow-current/25',
-        typeStyles[expr.type].bg,
-        typeStyles[expr.type].text,
-        typeStyles[expr.type].border,
+        typeStyles(expr.type).bg,
+        typeStyles(expr.type).text,
+        typeStyles(expr.type).border,
         props.className,
       )}>
       <div className='p-1'>{props.children}</div>

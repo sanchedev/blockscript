@@ -9,7 +9,7 @@ export function WhileStmtComp(props: StmtCompProps<WhileStmt>) {
     <div>
       <StmtBlock
         {...props}
-        className='bg-amber-300 border-amber-500 text-amber-800 rounded-b-none w-full'>
+        className='rounded-b-none w-full'>
         <div className='pl-2 flex gap-4 items-center'>
           <span>mientras</span>
           <ExprComp

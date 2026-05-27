@@ -9,19 +9,29 @@ import {
   IconPencil,
   IconTrash,
 } from '@tabler/icons-react'
-import { statementsGroups } from '../../../lib/blocks/statements/records/groups'
+import {
+  statementsGroups,
+  getStmtGroupKey,
+} from '../../../lib/blocks/statements/records/groups'
 import type { StmtCompProps } from '../statements/types'
 import { useGlobalStmt } from '../../../hooks/global-stmt'
 import { useLocationPath } from '../../../contexts/location-path'
 import { Button } from '../../ui/button'
 import { useState } from 'react'
 import { Menu, MenuItem } from '../../ui/menu'
-import { sectionStyles } from '../../../lib/blocks/statements/records/section-styles'
+import { Statements } from '../../../lib/blocks/statements/enum'
+import { blockColorMap, sectionColorMap } from '../../../lib/theme'
+import type { ItemStyle } from '../../../lib/blocks/shared/group-types'
 
 interface StmtBlockProps
-  extends React.HTMLAttributes<HTMLDivElement>, StmtCompProps {}
+  extends React.HTMLAttributes<HTMLDivElement>, StmtCompProps {
+  overrideStyles?: Partial<ItemStyle>
+}
 
-export function StmtBlock({ stmt, ...props }: StmtBlockProps) {
+export function StmtBlock({ stmt, overrideStyles, ...props }: StmtBlockProps) {
+  const groupKey = getStmtGroupKey(stmt.name as Statements)
+  const group = statementsGroups[groupKey]
+  const styles = { ...blockColorMap[group.blockColor], ...overrideStyles }
   const send = useSidebarStore((state) => state.send)
   const pending = useSidebarStore((state) => state.pending)
   const { getParent, move, getAt, stmtToBlockStmt, removeAt, replaceAt } =
@@ -37,11 +47,17 @@ export function StmtBlock({ stmt, ...props }: StmtBlockProps) {
 
   const handleReplace = () => {
     send(
-      statementsGroups
-        .map(({ key, title, stmts }) => ({
-          style: sectionStyles[key as keyof typeof sectionStyles],
+      (
+        Object.entries(statementsGroups) as [
+          string,
+          (typeof statementsGroups)[keyof typeof statementsGroups],
+        ][]
+      )
+        .map(([, { title, items, sectionColor, icon }]) => ({
+          style: sectionColorMap[sectionColor],
           title,
-          options: stmts.flatMap((value) =>
+          icon,
+          options: items.flatMap((value) =>
             value === stmt.name
               ? []
               : {
@@ -119,6 +135,9 @@ export function StmtBlock({ stmt, ...props }: StmtBlockProps) {
       {...props}
       className={clsx(
         'border-l-2 p-1 rounded-xl h-fit flex flex-row items-center gap-2 w-fit font-mono shadow shadow-current/25',
+        styles.bg,
+        styles.text,
+        styles.border,
         props.className,
       )}
       onMouseLeave={() => setOpen(false)}>

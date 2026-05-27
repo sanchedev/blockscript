@@ -5,7 +5,7 @@ import type { StmtCompProps } from './types'
 
 export function ExprStmtComp(props: StmtCompProps<ExprStmt>) {
   return (
-    <StmtBlock {...props} className='bg-sky-300 border-sky-500 text-sky-800'>
+    <StmtBlock {...props}>
       <ExprComp
         expr={props.stmt.expression}
         parent={props.stmt}

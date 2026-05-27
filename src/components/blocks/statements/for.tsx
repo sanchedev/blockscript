@@ -25,7 +25,7 @@ export function ForStmtComp(props: StmtCompProps<ForStmt>) {
     <div>
       <StmtBlock
         {...props}
-        className='bg-amber-300 border-amber-500 text-amber-800 rounded-b-none w-full'>
+        className='rounded-b-none w-full'>
         <div className='pl-2 flex gap-4 items-center flex-wrap'>
           <span>para</span>
           <Input

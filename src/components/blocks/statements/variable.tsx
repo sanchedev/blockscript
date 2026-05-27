@@ -16,7 +16,7 @@ export function VariableStmtComp(props: StmtCompProps<VariableStmt>) {
   }
 
   return (
-    <StmtBlock {...props} className='bg-cyan-300 border-cyan-500 text-cyan-800'>
+    <StmtBlock {...props}>
       <div className='pl-2 flex gap-4 items-center'>
         <span>crear</span>
         <div className='min-w-16 w-24 resize-x overflow-hidden'>

@@ -6,8 +6,7 @@ import type { StmtCompProps } from './types'
 export function PrintStmtComp(props: StmtCompProps<PrintStmt>) {
   return (
     <StmtBlock
-      {...props}
-      className='bg-green-300 border-green-500 text-green-800'>
+      {...props}>
       <div className='pl-2 flex gap-4 items-center'>
         <span>imprimir</span>
         <ExprComp
