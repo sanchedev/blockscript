@@ -16,7 +16,7 @@ export function StringLiteralExprComp(props: ExprCompProps<StringLiteralExpr>) {
   return (
     <ExprBlock {...props}>
       <div
-        className={`rounded-lg border-2 border-slate-200 bg-white px-2 py-1 h-8 flex gap-0 w-36 min-w-12 resize-x items-center font-mono has-focus:ring-2 ${typeStyles[PrimaryType.string].ring} overflow-hidden`}>
+        className={`rounded-lg border-2 border-slate-200 bg-white px-2 py-1 h-8 flex gap-0 w-36 min-w-12 resize-x items-center font-mono has-focus:ring-2 ${typeStyles(PrimaryType.string).ring} overflow-hidden`}>
         <span>"</span>
         <input
           className='p-0 outline-0 w-full'

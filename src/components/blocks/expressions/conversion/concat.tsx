@@ -10,7 +10,7 @@ export function ConcatExprComp(props: ExprCompProps<ConcatExpr>) {
   return (
     <ExprBlock {...props}>
       <div
-        className={`rounded-xl border-2 border-slate-200 bg-white p-1 flex gap-2 w-fit resize-x items-center font-mono has-focus:ring-2 ${typeStyles[PrimaryType.string].ring}`}>
+        className={`rounded-xl border-2 border-slate-200 bg-white p-1 flex gap-2 w-fit resize-x items-center font-mono has-focus:ring-2 ${typeStyles(PrimaryType.string).ring}`}>
         <ExprComp
           expr={props.expr.left}
           parent={props.expr}

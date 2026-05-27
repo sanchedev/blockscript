@@ -13,7 +13,7 @@ const operators: { value: IncrementOp; label: string }[] = [
 
 export function IncrementExprComp(props: ExprCompProps<IncrementExpr>) {
   const { updateAt } = useGlobalStmt()
-  const styles = typeStyles[PrimaryType.number]
+  const styles = typeStyles(PrimaryType.number)
   const identifiers = useVariableIdentifiers()
 
   const handleIdentifierChange = (value: string) => {

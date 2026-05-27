@@ -17,7 +17,7 @@ const operators: { value: AssignOp; label: string }[] = [
 
 export function AssignOpExprComp(props: ExprCompProps<AssignOpExpr>) {
   const { updateAt } = useGlobalStmt()
-  const styles = typeStyles[PrimaryType.number]
+  const styles = typeStyles(PrimaryType.number)
   const identifiers = useVariableIdentifiers()
 
   const handleIdentifierChange = (value: string) => {

@@ -8,7 +8,7 @@ import { typeStyles } from '../../../../lib/type-styles'
 
 export function AssignExprComp(props: ExprCompProps<AssignExpr>) {
   const { updateAt } = useGlobalStmt()
-  const styles = typeStyles[props.expr.type]
+  const styles = typeStyles(props.expr.type)
 
   const identifiers = useVariableIdentifiers()
 

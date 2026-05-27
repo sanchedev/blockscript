@@ -14,7 +14,7 @@ export function VariableExprComp(props: ExprCompProps<VariableExpr>) {
   const getVariableType = useVariableType()
   const resolvedType =
     getVariableType(props.expr.identifier) ?? PrimaryType.null
-  const styles = typeStyles[resolvedType]
+  const styles = typeStyles(resolvedType)
 
   const identifiers = useVariableIdentifiers()
 

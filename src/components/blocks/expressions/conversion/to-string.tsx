@@ -9,7 +9,7 @@ export function ToStringExprComp(props: ExprCompProps<ToStringExpr>) {
   return (
     <ExprBlock
       {...props}
-      className={`${typeStyles[PrimaryType.string].bg} ${typeStyles[PrimaryType.string].text} font-mono`}>
+      className={`${typeStyles(PrimaryType.string).bg} ${typeStyles(PrimaryType.string).text} font-mono`}>
       <div className='flex gap-2 items-center px-2'>
         <span>texto</span>
         <ExprComp
