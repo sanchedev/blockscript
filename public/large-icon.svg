@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="167" height="40" fill="none" view-box="0 0 167 40" class="h-full">
+  <rect radius="12" rx="12" width="167" height="40" fill="#00d492" />
+  <rect x="2" rx="12" radius="12" width="165" height="40" fill="#a4f4cf" />
+  <text y="20" x="14" width="128" height="40" font-size="16" font-weight="700"
+    font-family="'Cascadia Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
+    text-anchor="start" alignment-baseline="central" fill="#004f3b">
+    Block
+  </text>
+  <rect x="75" y="4" rx="8" width="87" height="32" stroke-width="2" stroke="#e2e8f0" fill="#fff" />
+  <text y="20" x="119" font-size="16" font-weight="700"
+    font-family="'Cascadia Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
+    text-anchor="middle" alignment-baseline="central" fill="#973c00">
+    Script
+  </text>
+</svg>
