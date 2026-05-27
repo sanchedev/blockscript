@@ -7,22 +7,27 @@
 
     <!-- SEO -->
     <title>BlockScript - Editor visual de programación por bloques</title>
-    <meta name="description" content="BlockScript es un editor visual de programación por bloques. Aprende lógica de programación con variables, condicionales, bucles y expresiones sin escribir código." />
+    <meta name="description" content="Editor visual de programación por bloques. Aprende lógica de programación con variables, condicionales, bucles y expresiones sin escribir código." />
     <meta name="keywords" content="programación por bloques, editor visual, aprender a programar, block programming, pensamiento computacional" />
     <link rel="canonical" href="https://blockscript-mu.vercel.app" />
+    <meta name="theme-color" content="#a4f4cf" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="BlockScript - Editor visual de programación por bloques" />
-    <meta property="og:description" content="Aprende lógica de programación con un editor visual por bloques. Variables, condicionales, bucles y expresiones sin escribir código." />
+    <meta property="og:description" content="Editor visual de programación por bloques. Aprende lógica de programación con variables, condicionales, bucles y expresiones sin escribir código." />
     <meta property="og:url" content="https://blockscript-mu.vercel.app" />
     <meta property="og:image" content="https://blockscript-mu.vercel.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="BlockScript - Editor visual de programación por bloques" />
+    <meta property="og:site_name" content="BlockScript" />
     <meta property="og:locale" content="es_ES" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="BlockScript - Editor visual de programación por bloques" />
-    <meta name="twitter:description" content="Aprende lógica de programación con un editor visual por bloques. Variables, condicionales, bucles y expresiones sin escribir código." />
+    <meta name="twitter:description" content="Editor visual de programación por bloques. Aprende lógica de programación con variables, condicionales, bucles y expresiones sin escribir código." />
     <meta name="twitter:image" content="https://blockscript-mu.vercel.app/og-image.png" />
 
     <!-- Font preconnect -->
@@ -34,8 +39,22 @@
 
     <!-- Apple Touch Icon (180x180) -->
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- JSON-LD -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "BlockScript",
+        "description": "Editor visual de programación por bloques",
+        "url": "https://blockscript-mu.vercel.app",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Any"
+      }
+    </script>
   </head>
   <body>
+    <h1 class="sr-only">BlockScript - Editor visual de programación por bloques</h1>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
