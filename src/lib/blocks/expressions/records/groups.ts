@@ -1,50 +1,66 @@
 import { Expressions } from '../enum'
+import {
+  IconNumber,
+  IconMath,
+  IconVariable,
+  IconArrowsLeftRight,
+} from '@tabler/icons-react'
+import type { GroupConfig } from '../../shared/group-types'
 
-export interface ExpressionsGroup {
-  key: string
-  title: string
-  exprs: Expressions[]
+export enum ExpressionsGroupKey {
+  Valores = 'valores',
+  Operaciones = 'operaciones',
+  Variables = 'variables',
+  Conversion = 'conversion',
 }
 
-export const expressionsGroups: ExpressionsGroup[] = [
-  {
-    key: 'valores',
+export const expressionsGroups: Record<ExpressionsGroupKey, GroupConfig<Expressions>> = {
+  [ExpressionsGroupKey.Valores]: {
     title: 'Valores',
-    exprs: [
+    items: [
       Expressions.StringLiteral,
       Expressions.NumberLiteral,
       Expressions.BooleanLiteral,
       Expressions.NullLiteral,
       Expressions.Read,
     ],
+    blockColor: 'sky',
+    sectionColor: 'amber',
+    icon: IconNumber,
   },
-  {
-    key: 'operaciones',
+  [ExpressionsGroupKey.Operaciones]: {
     title: 'Operaciones',
-    exprs: [
+    items: [
       Expressions.Binary,
       Expressions.BinaryComp,
       Expressions.Logical,
     ],
+    blockColor: 'sky',
+    sectionColor: 'red',
+    icon: IconMath,
   },
-  {
-    key: 'variables',
+  [ExpressionsGroupKey.Variables]: {
     title: 'Variables',
-    exprs: [
+    items: [
       Expressions.Variable,
       Expressions.Assign,
       Expressions.AssignOp,
       Expressions.Increment,
     ],
+    blockColor: 'sky',
+    sectionColor: 'purple',
+    icon: IconVariable,
   },
-  {
-    key: 'conversion',
+  [ExpressionsGroupKey.Conversion]: {
     title: 'Conversión',
-    exprs: [
+    items: [
       Expressions.ToString,
       Expressions.ToNumber,
       Expressions.ToBoolean,
       Expressions.Concat,
     ],
+    blockColor: 'sky',
+    sectionColor: 'orange',
+    icon: IconArrowsLeftRight,
   },
-]
+}

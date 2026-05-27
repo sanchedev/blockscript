@@ -1,35 +1,64 @@
 import { Statements } from '../enum'
+import {
+  IconCode,
+  IconVariable,
+  IconPrinter,
+  IconGitBranch,
+  IconRepeat,
+} from '@tabler/icons-react'
+import type { GroupConfig } from '../../shared/group-types'
 
-export interface StatementsGroup {
-  key: string
-  title: string
-  stmts: Statements[]
+export enum StatementsGroupKey {
+  Expresiones = 'expresiones',
+  Variables = 'variables',
+  Salida = 'salida',
+  Condicionales = 'condicionales',
+  Bucles = 'bucles',
 }
 
-export const statementsGroups: StatementsGroup[] = [
-  {
-    key: 'expresiones',
+export const statementsGroups: Record<StatementsGroupKey, GroupConfig<Statements>> = {
+  [StatementsGroupKey.Expresiones]: {
     title: 'Expresiones',
-    stmts: [Statements.Expr],
+    items: [Statements.Expr],
+    blockColor: 'sky',
+    sectionColor: 'blue',
+    icon: IconCode,
   },
-  {
-    key: 'variables',
+  [StatementsGroupKey.Variables]: {
     title: 'Variables',
-    stmts: [Statements.Variable],
+    items: [Statements.Variable],
+    blockColor: 'cyan',
+    sectionColor: 'cyan',
+    icon: IconVariable,
   },
-  {
-    key: 'salida',
+  [StatementsGroupKey.Salida]: {
     title: 'Salida',
-    stmts: [Statements.Print],
+    items: [Statements.Print],
+    blockColor: 'green',
+    sectionColor: 'green',
+    icon: IconPrinter,
   },
-  {
-    key: 'condicionales',
+  [StatementsGroupKey.Condicionales]: {
     title: 'Condicionales',
-    stmts: [Statements.If, Statements.ElseIf, Statements.Else],
+    items: [Statements.If, Statements.ElseIf, Statements.Else],
+    blockColor: 'rose',
+    sectionColor: 'rose',
+    icon: IconGitBranch,
   },
-  {
-    key: 'bucles',
+  [StatementsGroupKey.Bucles]: {
     title: 'Bucles',
-    stmts: [Statements.While, Statements.DoWhile, Statements.For],
+    items: [Statements.While, Statements.DoWhile, Statements.For],
+    blockColor: 'amber',
+    sectionColor: 'amber',
+    icon: IconRepeat,
   },
-]
+}
+
+export function getStmtGroupKey(stmt: Statements): StatementsGroupKey {
+  const entry = Object.entries(statementsGroups).find(([, group]) =>
+    group.items.includes(stmt),
+  )
+  return (entry?.[0] ?? StatementsGroupKey.Expresiones) as StatementsGroupKey
+}
+
+export type { GroupConfig }
