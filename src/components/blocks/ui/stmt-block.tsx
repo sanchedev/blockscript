@@ -144,14 +144,13 @@ export function StmtBlock({ stmt, overrideStyles, ...props }: StmtBlockProps) {
       <div className='flex-1'>{props.children}</div>
       <div className='relative flex w-8 transition-all stmt-tools'>
         <Button
-          className='size-7'
           disabled={pending}
           onClick={handleMenu}
           size='sm'
           shape='square'
-          aria-label='Menu'>
-          <IconDotsVertical className='size-full' />
-        </Button>
+          aria-label='Menu'
+          icon={IconDotsVertical}
+        />
         <Menu className='-bottom-16 left-full' hidden={!open}>
           <MenuItem disabled={pending} action={handleReplace}>
             <IconPencil className='size-4 inline' /> Reemplazar

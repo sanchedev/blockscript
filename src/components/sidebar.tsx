@@ -33,9 +33,10 @@ export function Sidebar() {
         size='sm'
         shape='circle'
         className='absolute -top-2 -right-2'
-        hidden={!info.optional}>
-        <IconX className='size-4' onClick={handleClose} />
-      </Button>
+        hidden={!info.optional}
+        onClick={handleClose}
+        icon={IconX}
+      />
       <ul className='flex flex-col w-20 p-2 gap-1 h-full border-r-2 border-gray-200'>
         {info.sections.map(({ title, style, icon: Icon }, i) => (
           <li key={'section-' + title}>

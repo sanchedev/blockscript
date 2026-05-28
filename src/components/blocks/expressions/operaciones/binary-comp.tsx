@@ -20,6 +20,14 @@ import { typeStyles } from '../../../../lib/type-styles'
 import { Button } from '../../../ui/button'
 
 const operators = ['>', '<', '>=', '<=', '==', '!='] as const
+const operatorIcons = [
+  IconMathGreater,
+  IconMathLower,
+  IconMathEqualGreater,
+  IconMathEqualLower,
+  IconEqual,
+  IconEqualNot,
+]
 const labels = [
   'Mayor que',
   'Menor que',
@@ -64,24 +72,9 @@ export function BinaryCompExprComp(props: ExprCompProps<BinaryCompExpr>) {
           shape='square'
           aria-label={labels[operatorIndex]}
           title={labels[operatorIndex]}
-          onClick={handleRotateOperator}>
-          {operators[operatorIndex] == '>' && (
-            <IconMathGreater className='size-5' />
-          )}
-          {operators[operatorIndex] == '<' && (
-            <IconMathLower className='size-5' />
-          )}
-          {operators[operatorIndex] == '>=' && (
-            <IconMathEqualGreater className='size-5' />
-          )}
-          {operators[operatorIndex] == '<=' && (
-            <IconMathEqualLower className='size-5' />
-          )}
-          {operators[operatorIndex] == '==' && <IconEqual className='size-5' />}
-          {operators[operatorIndex] == '!=' && (
-            <IconEqualNot className='size-5' />
-          )}
-        </Button>
+          onClick={handleRotateOperator}
+          icon={operatorIcons[operatorIndex]}
+        />
         <ExprComp
           expr={props.expr.right}
           parent={props.expr}

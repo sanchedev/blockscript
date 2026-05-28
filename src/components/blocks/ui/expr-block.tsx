@@ -73,9 +73,9 @@ export function ExprBlock({ edit, expr, ...props }: ExprBlockProps) {
           onClick={handleReplace}
           shape='square'
           size='sm'
-          aria-label='Reemplazar'>
-          <IconPencil className='size-full' />
-        </Button>
+          aria-label='Reemplazar'
+          icon={IconPencil}
+        />
       </div>
     </div>
   )

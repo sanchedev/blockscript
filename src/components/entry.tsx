@@ -144,25 +144,25 @@ export function Entry() {
             size='sm'
             shape='square'
             aria-label='Ir al centro'
-            onClick={handleReset}>
-            <IconFocusCentered className='size-full' />
-          </Button>
+            onClick={handleReset}
+            icon={IconFocusCentered}
+          />
           <Button
             size='sm'
             shape='square'
             aria-label='Acercar'
             onClick={handleZoomIn}
-            disabled={currentScale >= (zooms.at(-1) ?? 10)}>
-            <IconZoomIn className='size-full' />
-          </Button>
+            disabled={currentScale >= (zooms.at(-1) ?? 10)}
+            icon={IconZoomIn}
+          />
           <Button
             size='sm'
             shape='square'
             aria-label='Alejar'
             onClick={handleZoomOut}
-            disabled={currentScale <= zooms[0]}>
-            <IconZoomOut className='size-full' />
-          </Button>
+            disabled={currentScale <= zooms[0]}
+            icon={IconZoomOut}
+          />
         </div>
         <TransformComponent>
           <main className='px-[50vw] py-[50vh] min-w-[400vw] min-h-[400vh] w-25000 h-50000'>

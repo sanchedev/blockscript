@@ -16,9 +16,12 @@ export function Console() {
       style={{ height: 384 }}>
       <div className='flex justify-between items-center mb-2 px-1'>
         <h2 className='text-xl font-bold'>Consola</h2>
-        <Button shape='square' onClick={clear} aria-label='Limpiar y Cerrar'>
-          <IconEraser className='size-full' />
-        </Button>
+        <Button
+          shape='square'
+          onClick={clear}
+          aria-label='Limpiar y Cerrar'
+          icon={IconEraser}
+        />
       </div>
 
       <div className='bg-slate-50 border-2 border-slate-200 rounded-xl p-3 font-mono overflow-y-auto flex-1'>

@@ -15,6 +15,7 @@ import { typeStyles } from '../../../../lib/type-styles'
 import { Button } from '../../../ui/button'
 
 const operators = ['+', '-', '*', '/'] as const
+const operatorIcons = [IconPlus, IconMinus, IconAsterisk, IconSlash]
 const labels = ['Más', 'Menos', 'Por', 'Sobre']
 
 export function BinaryExprComp(props: ExprCompProps<BinaryExpr>) {
@@ -51,14 +52,9 @@ export function BinaryExprComp(props: ExprCompProps<BinaryExpr>) {
           shape='square'
           aria-label={labels[operatorIndex]}
           title={labels[operatorIndex]}
-          onClick={handleRotateOperator}>
-          {operators[operatorIndex] == '+' && <IconPlus className='size-5' />}
-          {operators[operatorIndex] == '-' && <IconMinus className='size-5' />}
-          {operators[operatorIndex] == '*' && (
-            <IconAsterisk className='size-5' />
-          )}
-          {operators[operatorIndex] == '/' && <IconSlash className='size-5' />}
-        </Button>
+          onClick={handleRotateOperator}
+          icon={operatorIcons[operatorIndex]}
+        />
         <ExprComp
           expr={props.expr.right}
           parent={props.expr}
