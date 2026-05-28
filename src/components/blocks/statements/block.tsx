@@ -46,20 +46,56 @@ export function BlockStmtComp(
       )}>
       {props.stmt.children.map((stmt, i) => {
         const line = i + 1
-        const error = getErrorByLocation(...locationPath, {
+        const selfLoc = {
           index: i,
           stmt: stmt.name,
-        })
+        }
+        const selfPath = [...locationPath, selfLoc]
+        const error = getErrorByLocation(...selfPath)
+
+        const handleAdd = () => {
+          const indexPath = selfPath.map(({ index }) => index)
+          send(
+            (
+              Object.entries(statementsGroups) as [
+                StatementsGroupKey,
+                (typeof statementsGroups)[StatementsGroupKey],
+              ][]
+            ).map(([, { title, items, sectionColor, icon }]) => ({
+              style: sectionColorMap[sectionColor],
+              title,
+              icon,
+              options: items.map((stmt) => ({
+                label: statementsLabels[stmt],
+                value: stmt,
+              })),
+            })),
+            (value) => {
+              if (value == null) return
+              addAt(new statementsClasses[value as Statements](), ...indexPath)
+            },
+          )
+        }
+
         return (
-          <div key={stmt.id} className='flex items-start gap-2 h-fit'>
-            <div className='w-6 -ml-8 h-full flex items-center justify-end text-right text-sm font-mono text-slate-400 select-none pt-1'>
+          <div
+            key={stmt.id}
+            className='relative -ml-8 flex items-center gap-2 h-fit not-hover:[&>button]:hidden'>
+            <Button
+              size='xs'
+              shape='square'
+              className='absolute -top-4 left-2 animate-fade-in animate-duration-normal'
+              icon={IconPlus}
+              onClick={handleAdd}
+            />
+            <div className='w-6 h-full flex items-center justify-end text-right text-sm font-mono text-slate-400 select-none pt-1'>
               {error ? (
                 <IconExclamationCircleFilled
                   className='text-red-400'
                   title={`${error.type}: ${error.message}`}
                 />
               ) : (
-                line
+                <span>{line}</span>
               )}
             </div>
             <LocationProvider location={{ index: i, stmt: stmt.name }}>
@@ -77,7 +113,7 @@ export function BlockStmtComp(
                 StatementsGroupKey,
                 (typeof statementsGroups)[StatementsGroupKey],
               ][]
-            ).map(([key, { title, items, sectionColor, icon }]) => ({
+            ).map(([, { title, items, sectionColor, icon }]) => ({
               style: sectionColorMap[sectionColor],
               title,
               icon,
@@ -97,9 +133,9 @@ export function BlockStmtComp(
           )
         }}
         disabled={pending}
-        shape='square'>
-        <IconPlus className='size-5 text-current' />
-      </Button>
+        shape='square'
+        icon={IconPlus}
+      />
     </div>
   )
 }
