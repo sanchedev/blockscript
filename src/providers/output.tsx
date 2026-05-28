@@ -3,6 +3,7 @@ import { OutputCtx } from '../contexts/output'
 import { useGlobalStmt } from '../hooks/global-stmt'
 import { Interpreter, type InterpretResult } from '../lib/interpreter'
 import { serialize } from '../lib/serializer'
+import { useConsoleStore } from '../stores/console-store'
 
 export function OutputProvider(props: React.PropsWithChildren) {
   const { stmt } = useGlobalStmt()
@@ -13,6 +14,7 @@ export function OutputProvider(props: React.PropsWithChildren) {
   const run = async () => {
     if (isRunning) return
 
+    useConsoleStore.getState().openConsole()
     localStorage.setItem('blockscript-save', JSON.stringify(serialize(stmt)))
 
     setIsRunning(true)

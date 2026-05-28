@@ -3,12 +3,14 @@ import { OutputCtx } from '../contexts/output'
 import { type EvalError } from '../lib/errors'
 import { statementsLabels } from '../lib/blocks/statements/records/labels'
 import { Button } from './ui/button'
-import { IconEraser } from '@tabler/icons-react'
+import { IconEraser, IconX } from '@tabler/icons-react'
+import { useConsole } from '../hooks/console'
 
 export function Console() {
-  const { result, clear } = use(OutputCtx)
+  const { result, clear, isRunning } = use(OutputCtx)
+  const { open, closeConsole } = useConsole()
 
-  if (result == null) return
+  if (!open) return
 
   return (
     <div
@@ -16,15 +18,28 @@ export function Console() {
       style={{ height: 384 }}>
       <div className='flex justify-between items-center mb-2 px-1'>
         <h2 className='text-xl font-bold'>Consola</h2>
-        <Button
-          shape='square'
-          onClick={clear}
-          aria-label='Limpiar y Cerrar'
-          icon={IconEraser}
-        />
+        <div className='flex gap-2'>
+          {result && (
+            <Button
+              shape='square'
+              onClick={clear}
+              aria-label='Limpiar'
+              icon={IconEraser}
+            />
+          )}
+          <Button
+            shape='square'
+            onClick={closeConsole}
+            aria-label='Cerrar'
+            icon={IconX}
+          />
+        </div>
       </div>
 
       <div className='bg-slate-50 border-2 border-slate-200 rounded-xl p-3 font-mono overflow-y-auto flex-1'>
+        {isRunning && !result && (
+          <p className='text-slate-500 animate-pulse'>Ejecutando...</p>
+        )}
         {result?.errors && <ConsoleLogError errors={result.errors} />}
         {result?.output?.map((line, i) => (
           <ConsoleLog key={`output-${i}`} line={line} />
