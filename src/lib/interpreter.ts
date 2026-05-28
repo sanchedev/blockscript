@@ -304,6 +304,7 @@ const arithmeticOps = {
   '-': (a: number, b: number) => a - b,
   '*': (a: number, b: number) => a * b,
   '/': (a: number, b: number) => a / b,
+  '%': (a: number, b: number) => a % b,
 }
 
 const comparisonOps = {

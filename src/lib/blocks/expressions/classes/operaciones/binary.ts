@@ -9,6 +9,7 @@ export enum BinaryOp {
   Sub = '-',
   Mul = '*',
   Div = '/',
+  Mod = '%',
 }
 
 export class BinaryExpr extends Expr {

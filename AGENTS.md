@@ -83,7 +83,7 @@ pnpm preview      # vite preview
 | `AssignOpExpr` | `assign-op-expr` | `identifier, operator: AssignOp, expression: Expr` | `número` |
 | `IncrementExpr` | `increment-expr` | `identifier: string, operator: IncrementOp` | `número` |
 
-**BinaryOp**: `Add='+' Sub='-' Mul='*' Div='/'` **BinaryCompOp**: `Gt='>' Lt='<' Gte='>=' Lte='<=' Eq='==' Neq='!='` **LogicalOp**: `And='Y' Or='O'` **AssignOp**: `AddAssign='+=' SubAssign='-=' MulAssign='*=' DivAssign='/='` **IncrementOp**: `Increment='++' Decrement='--'`
+**BinaryOp**: `Add='+' Sub='-' Mul='*' Div='/' Mod='%'` **BinaryCompOp**: `Gt='>' Lt='<' Gte='>=' Lte='<=' Eq='==' Neq='!='` **LogicalOp**: `And='Y' Or='O'` **AssignOp**: `AddAssign='+=' SubAssign='-=' MulAssign='*=' DivAssign='/='` **IncrementOp**: `Increment='++' Decrement='--'`
 
 ## Statements (11)
 

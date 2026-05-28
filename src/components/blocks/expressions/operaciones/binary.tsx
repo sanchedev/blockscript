@@ -5,6 +5,7 @@ import { ExprComp } from '../expr'
 import type { ExprCompProps } from '../types'
 import {
   IconAsterisk,
+  IconCirclePercentage,
   IconMinus,
   IconPlus,
   IconSlash,
@@ -14,9 +15,9 @@ import { PrimaryType } from '../../../../lib/types'
 import { typeStyles } from '../../../../lib/type-styles'
 import { Button } from '../../../ui/button'
 
-const operators = ['+', '-', '*', '/'] as const
-const operatorIcons = [IconPlus, IconMinus, IconAsterisk, IconSlash]
-const labels = ['Más', 'Menos', 'Por', 'Sobre']
+const operators = ['+', '-', '*', '/', '%'] as const
+const operatorIcons = [IconPlus, IconMinus, IconAsterisk, IconSlash, IconCirclePercentage]
+const labels = ['Más', 'Menos', 'Por', 'Sobre', 'Módulo']
 
 export function BinaryExprComp(props: ExprCompProps<BinaryExpr>) {
   const [operatorIndex, setOperatorIndex] = useState(0)

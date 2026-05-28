@@ -70,7 +70,7 @@ pnpm preview    # vite preview
 | `IncrementExpr` | `increment-expr` | número |
 | `ReadExpr` | `read-expr` | texto |
 
-**Operadores:** `+`, `-`, `*`, `/` · `>`, `<`, `>=`, `<=`, `==`, `!=` · `Y`, `O` · `+=`, `-=`, `*=`, `/=` · `++`, `--`
+**Operadores:** `+`, `-`, `*`, `/`, `%` · `>`, `<`, `>=`, `<=`, `==`, `!=` · `Y`, `O` · `+=`, `-=`, `*=`, `/=` · `++`, `--`
 
 ## Validación
 
