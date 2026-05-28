@@ -2,6 +2,8 @@
 
 Editor visual de programación por bloques. React 19 + TypeScript 6 + Vite 8 + TailwindCSS 4 + Zustand 5 (solo sidebar).
 
+> **Sync:** Cada cambio importante en statements, expressions, validación, colores o arquitectura debe registrarse tanto en `README.md` (visión pública) como en `AGENTS.md` (referencia operativa). Mantener ambos sincronizados.
+
 ## Comandos
 
 ```
