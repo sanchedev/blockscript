@@ -6,6 +6,7 @@ interface OutputContext {
   clear(): void
   isRunning: boolean
   result: InterpretResult | null
+  time: number | null
 }
 
 export const OutputCtx = createContext<OutputContext>(null!)

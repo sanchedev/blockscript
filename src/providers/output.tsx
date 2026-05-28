@@ -11,6 +11,7 @@ export function OutputProvider(props: React.PropsWithChildren) {
 
   const [result, setResult] = useState<InterpretResult | null>(null)
   const [isRunning, setIsRunning] = useState(false)
+  const [time, setTime] = useState<number | null>(null)
 
   const run = async () => {
     if (isRunning) return
@@ -18,6 +19,7 @@ export function OutputProvider(props: React.PropsWithChildren) {
     useConsoleStore.getState().openConsole()
     localStorage.setItem('blockscript-save', JSON.stringify(serialize(stmt)))
 
+    setTime(null)
     setIsRunning(true)
 
     const interpreter = new Interpreter()
@@ -29,7 +31,10 @@ export function OutputProvider(props: React.PropsWithChildren) {
     setResult({ output: [], errors: null })
 
     try {
+      const startTime = performance.now()
       const finalResult = await interpreter.interpret(stmt.children)
+      const endTime = performance.now()
+      setTime(endTime - startTime)
       if (finalResult.errors) {
         setResult(finalResult)
       } else {
@@ -54,6 +59,7 @@ export function OutputProvider(props: React.PropsWithChildren) {
         result,
         run,
         clear,
+        time,
       }}>
       {props.children}
     </OutputCtx>

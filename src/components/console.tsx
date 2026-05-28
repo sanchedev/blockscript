@@ -7,7 +7,7 @@ import { IconEraser, IconX } from '@tabler/icons-react'
 import { useConsole } from '../hooks/console'
 
 export function Console() {
-  const { result, clear, isRunning } = use(OutputCtx)
+  const { result, clear, isRunning, time } = use(OutputCtx)
   const { open, closeConsole } = useConsole()
 
   if (!open) return
@@ -36,10 +36,20 @@ export function Console() {
         </div>
       </div>
 
-      <div className='bg-slate-50 border-2 border-slate-200 rounded-xl p-3 font-mono overflow-y-auto flex-1'>
-        {isRunning && (
-          <p className='text-slate-500 animate-pulse'>Ejecutando...</p>
+      <div className='bg-slate-50 border-2 border-slate-200 rounded-xl p-3 font-mono overflow-y-auto flex-1 text-sm'>
+        {result != null && (
+          <pre className='text-slate-800 font-bold'>
+            <span className='text-emerald-700'>➜ BlockScript</span>{' '}
+            {time != null
+              ? `(${(time / 1000).toFixed(2)}s)`
+              : isRunning && (
+                  <span className='text-slate-500 animate-pulse'>
+                    Ejecutando...
+                  </span>
+                )}
+          </pre>
         )}
+        <br />
         {result?.errors && <ConsoleLogError errors={result.errors} />}
         {result?.output?.map((line, i) => (
           <ConsoleLog key={`output-${i}`} line={line} />
@@ -51,8 +61,7 @@ export function Console() {
 
 function ConsoleLog({ line }: { line: string }) {
   return (
-    <pre className='text-sm text-slate-700 py-0.5 whitespace-pre-wrap break-all'>
-      <span className='text-slate-400 select-none'>{'> '}</span>
+    <pre className='text-slate-700 py-0.5 whitespace-pre-wrap break-all'>
       {line}
     </pre>
   )
@@ -65,7 +74,7 @@ function ConsoleLogError({ errors }: { errors: EvalError[] }) {
     return (
       <div
         key={key}
-        className='text-sm text-red-700 py-0.5 whitespace-pre-wrap break-all'>
+        className='text-red-700 py-0.5 whitespace-pre-wrap break-all'>
         <pre>
           <span className='text-red-400 select-none'>✖ </span>
           <span className='font-bold'>{err.type}</span>: {err.message}
