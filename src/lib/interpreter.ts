@@ -57,9 +57,11 @@ function formatValue(value: unknown): string {
 export class Interpreter {
   currentLocation: Location[] = []
   output: string[] = []
+  onOutput?: (line: string) => void
 
   write(str: string) {
     this.output.push(str)
+    this.onOutput?.(str)
   }
   addRuntimeErr(msg: string): never {
     throw {

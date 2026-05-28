@@ -37,7 +37,7 @@ export function Console() {
       </div>
 
       <div className='bg-slate-50 border-2 border-slate-200 rounded-xl p-3 font-mono overflow-y-auto flex-1'>
-        {isRunning && !result && (
+        {isRunning && (
           <p className='text-slate-500 animate-pulse'>Ejecutando...</p>
         )}
         {result?.errors && <ConsoleLogError errors={result.errors} />}

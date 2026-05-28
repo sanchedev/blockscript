@@ -134,11 +134,14 @@ export function Entry() {
         }}
         panning={{
           disabled: false,
-          excluded: ['input'],
+          excluded: ['input', 'select', '.excluded'],
           velocityDisabled: true,
         }}
-        pinch={{ disabled: false, excluded: ['input'] }}
-        doubleClick={{ disabled: false, excluded: ['input'] }}>
+        pinch={{ disabled: false, excluded: ['input', 'select', '.excluded'] }}
+        doubleClick={{
+          disabled: false,
+          excluded: ['input', 'select', '.excluded'],
+        }}>
         <div className='absolute z-10 bottom-2 right-2 flex gap-2'>
           <Button
             size='sm'

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { OutputCtx } from '../contexts/output'
 import { useGlobalStmt } from '../hooks/global-stmt'
 import { Interpreter, type InterpretResult } from '../lib/interpreter'
+import type { EvalError } from '../lib/errors'
 import { serialize } from '../lib/serializer'
 import { useConsoleStore } from '../stores/console-store'
 
@@ -18,9 +19,24 @@ export function OutputProvider(props: React.PropsWithChildren) {
     localStorage.setItem('blockscript-save', JSON.stringify(serialize(stmt)))
 
     setIsRunning(true)
+
+    const interpreter = new Interpreter()
+
+    interpreter.onOutput = () => {
+      setResult({ output: [...interpreter.output], errors: null })
+    }
+
+    setResult({ output: [], errors: null })
+
     try {
-      const result = await new Interpreter().interpret(stmt.children)
-      setResult(result)
+      const finalResult = await interpreter.interpret(stmt.children)
+      if (finalResult.errors) {
+        setResult(finalResult)
+      } else {
+        setResult({ output: interpreter.output, errors: null })
+      }
+    } catch (error) {
+      setResult({ output: null, errors: [error as EvalError] })
     } finally {
       setIsRunning(false)
     }
