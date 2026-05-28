@@ -5,6 +5,7 @@ import {
   IfStmt,
   ElseIfStmt,
   ElseStmt,
+  WaitStmt,
   WhileStmt,
   PrintStmt,
   VariableStmt,
@@ -15,6 +16,7 @@ import { ForStmtComp } from './for'
 import { IfStmtComp } from './if'
 import { ElseIfStmtComp } from './else-if'
 import { ElseStmtComp } from './else'
+import { WaitStmtComp } from './wait'
 import { WhileStmtComp } from './while'
 import { PrintStmtComp } from './print'
 import { VariableStmtComp } from './variable'
@@ -47,5 +49,8 @@ export function StmtComp(props: StmtCompProps) {
   }
   if (props.stmt instanceof ForStmt) {
     return <ForStmtComp {...(props as StmtCompProps<ForStmt>)} />
+  }
+  if (props.stmt instanceof WaitStmt) {
+    return <WaitStmtComp {...(props as StmtCompProps<WaitStmt>)} />
   }
 }

@@ -48,6 +48,7 @@ pnpm preview    # vite preview
 | `WhileStmt` | `while-stmt` | `condition: Expr, body: BlockStmt` |
 | `DoWhileStmt` | `do-while-stmt` | `condition: Expr, body: BlockStmt` |
 | `ForStmt` | `for-stmt` | `identifier, start, end, step: Expr, body: BlockStmt` |
+| `WaitStmt` | `wait-stmt` | `duration: Expr` |
 
 ## Expressions (16)
 
@@ -109,6 +110,7 @@ pnpm preview    # vite preview
 | PrintStmt | Salida | `bg-green-200` |
 | IfStmt / ElseIfStmt / ElseStmt | Condicionales | `bg-rose-200` |
 | WhileStmt / DoWhileStmt / ForStmt | Bucles | `bg-amber-200` |
+| WaitStmt | Tiempo | `bg-yellow-200` |
 
 ## Arquitectura
 

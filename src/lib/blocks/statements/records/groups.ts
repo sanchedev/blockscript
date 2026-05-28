@@ -1,5 +1,6 @@
 import { Statements } from '../enum'
 import {
+  IconClock,
   IconCode,
   IconVariable,
   IconPrinter,
@@ -14,6 +15,7 @@ export enum StatementsGroupKey {
   Salida = 'salida',
   Condicionales = 'condicionales',
   Bucles = 'bucles',
+  Tiempo = 'tiempo',
 }
 
 export const statementsGroups: Record<StatementsGroupKey, GroupConfig<Statements>> = {
@@ -51,6 +53,13 @@ export const statementsGroups: Record<StatementsGroupKey, GroupConfig<Statements
     blockColor: 'amber',
     sectionColor: 'amber',
     icon: IconRepeat,
+  },
+  [StatementsGroupKey.Tiempo]: {
+    title: 'Tiempo',
+    items: [Statements.Wait],
+    blockColor: 'yellow',
+    sectionColor: 'yellow',
+    icon: IconClock,
   },
 }
 

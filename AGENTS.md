@@ -17,7 +17,7 @@ pnpm preview      # vite preview
 
 - **Statements** (`src/lib/blocks/statements/classes/`) — `Stmt` (abstract, `id: string`, `name: Statements`), `BlockStmt` (raíz con `children: Stmt[]`), `ExprStmt`, `PrintStmt`, `VariableStmt`, `IfStmt`, `ElseIfStmt`, `ElseStmt`, `WhileStmt`, `DoWhileStmt`, `ForStmt`
   - Registros en `records/`: `classes.ts`, `labels.ts`, `groups.ts`
-  - Enum `Statements` incluye `Stmt`, `Expr`, `Print`, `Variable`, `Block`, `If`, `ElseIf`, `Else`, `While`, `DoWhile`, `For`
+  - Enum `Statements` incluye `Stmt`, `Expr`, `Print`, `Variable`, `Block`, `If`, `ElseIf`, `Else`, `While`, `DoWhile`, `For`, `Wait`
 - **Expressions** (`src/lib/blocks/expressions/classes/`) — `Expr` (abstract, `type: PrimaryType`), más 16 clases concretas organizadas en subdirectorios por grupo:
   - `valores/`: NumberLiteralExpr, StringLiteralExpr, BooleanLiteralExpr, NullLiteralExpr, ReadExpr
   - `operaciones/`: BinaryExpr, BinaryCompExpr, LogicalExpr
@@ -38,7 +38,7 @@ pnpm preview      # vite preview
   - WhileStmt: valida `condition` tipo `V / F`, valida `body` recursivamente.
   - DoWhileStmt: same as WhileStmt.
   - ForStmt: valida `start`, `end`, `step` como `número`; crea `Defineds` hijo con loop variable; valida `body` recursivamente.
-- **Interpreter** (`src/lib/interpreter.ts`): `executeStatements()` usa `peek()`/`next()` dinámicos. `executeIfStmt()` evalúa condición, ejecuta `thenBody`, luego recorre hermanos `ElseIfStmt`/`ElseStmt` con `peek()`/`next()` y flag `hasExecuted` para cortocircuito. `executeWhileStmt()` evalúa condición y ejecuta `body.children` en loop mientras sea verdadera. `executeDoWhileStmt()` ejecuta body al menos una vez. `executeForStmt()` evalúa start/end/step, loop con incremento (soporta step negativo).
+- **Interpreter** (`src/lib/interpreter.ts`): `executeStatements()` usa `peek()`/`next()` dinámicos. `executeIfStmt()` evalúa condición, ejecuta `thenBody`, luego recorre hermanos `ElseIfStmt`/`ElseStmt` con `peek()`/`next()` y flag `hasExecuted` para cortocircuito. `executeWhileStmt()` evalúa condición y ejecuta `body.children` en loop mientras sea verdadera. `executeDoWhileStmt()` ejecuta body al menos una vez. `executeForStmt()` evalúa start/end/step, loop con incremento (soporta step negativo). `executeWaitStmt()` espera N ms via `await new Promise(r => setTimeout(r, N))`. El intérprete es **async**: todos los métodos de ejecución y evaluación devuelven `Promise`, lo que evita congelar la página en bucles largos.
 - **Condicionales (sibling pattern)**: IfStmt, ElseIfStmt y ElseStmt viven como hermanos en `BlockStmt.children[]` (no como linked list con `elseBody`). El intérprete y validador usan `peek()`/`next()` y `statements[i + 1]` para consumirlos secuencialmente.
 - **Eventos**: `editorChanged`, `sidebarInfoRecieved`, `sidebarInfoSended` — pub/sub con `Event<T>` class.
 - **Sidebar**: event-driven request/response vía `useSidebarStore.send()`. Componentes pasan `{ title, style, icon, options }[]` donde `icon` se renderiza en el tab. Las secciones se construyen desde `statementsGroups`/`expressionsGroups` (cada grupo tiene su `sectionColor` que resuelve a `sectionColorMap`).
@@ -99,6 +99,7 @@ pnpm preview      # vite preview
 | `WhileStmt` | `while-stmt` | `condition: Expr, body: BlockStmt` |
 | `DoWhileStmt` | `do-while-stmt` | `condition: Expr, body: BlockStmt` |
 | `ForStmt` | `for-stmt` | `identifier, start, end, step: Expr, body: BlockStmt` |
+| `WaitStmt` | `wait-stmt` | `duration: Expr` |
 
 `Stmt` (abstract base) no se usa directamente, pero existe en enum.
 
@@ -121,6 +122,7 @@ pnpm preview      # vite preview
 - `while-stmt`: condition debe ser `V / F`; valida `body` recursivamente
 - `do-while-stmt`: same as while-stmt
 - `for-stmt`: `start`, `end`, `step` deben ser `número`; crea `Defineds` hijo con loop variable `número`; valida `body` recursivamente
+- `wait-stmt`: `duration` debe ser `número`
 
 ## Colores
 
@@ -144,6 +146,7 @@ Statements usan colores por grupo (definidos en `groups.ts` via `blockColor`):
 | PrintStmt | Salida | `bg-green-200` | `border-green-400` |
 | IfStmt/ElseIfStmt/ElseStmt | Condicionales | `bg-rose-200` | `border-rose-400` |
 | WhileStmt/DoWhileStmt/ForStmt | Bucles | `bg-amber-200` | `border-amber-400` |
+| WaitStmt | Tiempo | `bg-yellow-200` | `border-yellow-400` |
 
 ## Grupos de sidebar (section-styles)
 

@@ -13,7 +13,7 @@ import { ReadExpr } from '../blocks/expressions/classes/valores/read'
 import type { ExprStmt, Stmt } from '../blocks/statements'
 import type { PrintStmt } from '../blocks/statements/classes/print-stmt'
 import { VariableStmt } from '../blocks/statements/classes/variable-stmt'
-import { IfStmt, ElseIfStmt, ElseStmt, WhileStmt, DoWhileStmt, ForStmt } from '../blocks/statements'
+import { IfStmt, ElseIfStmt, ElseStmt, WaitStmt, WhileStmt, DoWhileStmt, ForStmt } from '../blocks/statements'
 import {
   error,
   ErrorType,
@@ -212,6 +212,15 @@ export function validate(
       errors.push(
         ...validate(stmt.body.children, forDefineds, ...parents, location),
       )
+    } else if (stmt instanceof WaitStmt) {
+      collectExprErrors(stmt.duration, defineds, createTools(location))
+      if (stmt.duration.type !== PrimaryType.number) {
+        addError(
+          ErrorType.Type,
+          `La duración debe ser número, recibió ${stmt.duration.type}`,
+          location,
+        )
+      }
     }
   }
 

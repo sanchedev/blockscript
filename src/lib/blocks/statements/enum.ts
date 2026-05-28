@@ -10,4 +10,5 @@ export enum Statements {
   While = 'while-stmt',
   DoWhile = 'do-while-stmt',
   For = 'for-stmt',
+  Wait = 'wait-stmt',
 }

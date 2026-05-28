@@ -4,6 +4,7 @@ export const blockColorMap = {
   green: { bg: 'bg-green-200', text: 'text-green-900', border: 'border-green-400' },
   rose:  { bg: 'bg-rose-200',  text: 'text-rose-900',  border: 'border-rose-400' },
   amber: { bg: 'bg-amber-200', text: 'text-amber-900', border: 'border-amber-400' },
+  yellow: { bg: 'bg-yellow-200', text: 'text-yellow-900', border: 'border-yellow-400' },
 } as const
 
 export const sectionColorMap = {
@@ -15,6 +16,7 @@ export const sectionColorMap = {
   red:    { bg: 'bg-red-100',    text: 'text-red-800',    border: 'border-red-300',    ring: 'ring-red-400',    header: 'bg-red-200 text-red-900' },
   orange: { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-300', ring: 'ring-orange-400', header: 'bg-orange-200 text-orange-900' },
   purple: { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-300', ring: 'ring-purple-400', header: 'bg-purple-200 text-purple-900' },
+  yellow: { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-300', ring: 'ring-yellow-400', header: 'bg-yellow-200 text-yellow-900' },
 } as const
 
 export type BlockThemeColor = keyof typeof blockColorMap

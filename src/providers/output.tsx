@@ -10,15 +10,18 @@ export function OutputProvider(props: React.PropsWithChildren) {
   const [result, setResult] = useState<InterpretResult | null>(null)
   const [isRunning, setIsRunning] = useState(false)
 
-  const run = () => {
+  const run = async () => {
     if (isRunning) return
 
     localStorage.setItem('blockscript-save', JSON.stringify(serialize(stmt)))
 
     setIsRunning(true)
-    const result = new Interpreter().interpret(stmt.children)
-    setResult(result)
-    setIsRunning(false)
+    try {
+      const result = await new Interpreter().interpret(stmt.children)
+      setResult(result)
+    } finally {
+      setIsRunning(false)
+    }
   }
   const clear = () => {
     if (isRunning) return
