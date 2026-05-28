@@ -27,6 +27,7 @@ pnpm preview      # vite preview
   - `valores/`, `operaciones/`, `variables/`, `conversion/` con sus respectivos `.tsx`
 - **State**: no hay stores Zustand (excepto `sidebar-store`). Statements vía `GlobalStmtCtx` (context) + `GlobalStmtProvider`. Errores vía `ErrorCtx` + `ErrorProvider`. Output vía `OutputCtx` + `OutputProvider`. Location vía `LocationCtx` anidado con `LocationProvider`.
 - **CRUD de statements**: basado en path de índices (`addAt`, `removeAt`, `replaceAt`, `move`, `updateAt`, `replaceStmt`), no en líneas. Los paths recorren `BlockStmt.children`. El hook `useGlobalStmt` resuelve automáticamente el path desde `LocationCtx`. `replaceStmt(stmt)` reemplaza el árbol completo (usado por importar/nuevo).
+- **Block add-on-hover**: cada statement en `BlockStmtComp` tiene un botón `+` (hover) que abre el sidebar picker para insertar un nuevo statement después del actual.
 - **Entrypoint**: `src/main.tsx` → `App.tsx` → `Header` + `Entry` (editor con zoom/pan via `react-zoom-pan-pinch`) + `Sidebar` + `Console`
 - **Tipos**: `PrimaryType` enum con `número`, `texto`, `V / F`, `nulo`. `Expr.type` se asigna estáticamente en cada clase.
 - **Validator** (`src/lib/validator/validator.ts` + `defineds.ts`): `Defineds` class con scoping padre-hijo (soporta `BlockStmt` anidados). `validate()` recorre recursivamente, incluyendo hijos de `BlockStmt`.
@@ -47,10 +48,11 @@ pnpm preview      # vite preview
 - **Theme system** (`src/lib/theme.ts`): `blockColorMap` y `sectionColorMap` con strings literales completas (p.ej. `bg-sky-200 text-sky-900 border-sky-400`). Tailwind las detecta en build porque son literales en el source.
 - **VariableExpr.edit(identifier, type)**: segundo parámetro `type` es obligatorio para actualizar `expr.type`.
 - **AssignExpr.copy()**: preserva `expr.type`.
-- **UI components**: `Button` (`src/components/ui/button.tsx`) con props `size`, `shape`, `variant`. `Input` (`src/components/blocks/ui/input.tsx`) con estilos base. `Confirm` (`src/components/ui/confirm.tsx`) diálogo modal con `title`, `description`, `onAccept`, `onCancel`, `open`.
+- **UI components**: `Button` (`src/components/ui/button.tsx`) con props `size` (`xs`/`sm`/`md`), `shape`, `variant`, `icon` (componente `@tabler/icons-react`). `Input` (`src/components/blocks/ui/input.tsx`) con estilos base. `Confirm` (`src/components/ui/confirm.tsx`) diálogo modal con `title`, `description`, `onAccept`, `onCancel`, `open`.
 - **No hay tests** configurados.
 - **Iconos**: `@tabler/icons-react`. `GroupConfig` incluye `icon` de tipo `ComponentType`.
 - **Font**: Cascadia Code via Google Fonts (preconnect en index.html).
+- **Animaciones**: `tailwind-animations` (`^1.0.1`) disponible vía `animate-fade-in`, `animate-duration-normal`, etc. Importado en `src/index.css`.
 - **Formato valores**: `null` → `'nulo'`, `boolean` → `'verdadero'/'falso'`, resto → `String(value)`.
 - **IDs**: `crypto.randomUUID()` en constructor de `Stmt`, preservado en `copy()`.
 - **Serializer** (`src/lib/serializer.ts`): `serialize(node)` recorre `Object.keys` y aplane recursivamente Stmt/Expr a JSON. `deserialize(data)` usa `statementsClasses`/`expressionsClasses` para reconstruir el árbol. Soporta todos los tipos de Stmt/Expr automáticamente.
