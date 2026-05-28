@@ -45,85 +45,59 @@ export function Header() {
   }
 
   return (
-    <header className='fixed z-20 top-0 inset-x-0 px-4 h-16 flex justify-between items-center bg-linear-180 from-25% from-slate-100 to-slate-100/70 backdrop-blur-sm border-b-2 border-slate-200 shadow'>
-      <div className='h-12 select-none'>
+    <header className='fixed z-20 top-0 inset-x-0 pr-4 h-16 flex justify-between items-center bg-linear-180 from-20% from-slate-100 to-slate-100/60 backdrop-blur-sm border-b-2 border-slate-200 shadow'>
+      <div className='h-full select-none w-56 bg-linear-90 from-emerald-100/70 to-transparent pl-8 py-2'>
         <svg
           xmlns='http://www.w3.org/2000/svg'
-          width='176'
+          width='40'
           height='40'
           fill='none'
-          viewBox='0 0 176 40'
-          className='h-full'>
-          <rect radius='12' rx='12' width='167' height='40' fill='#00d492' />
-          <rect
-            x='2'
-            rx='12'
-            radius='12'
-            width='165'
-            height='40'
-            fill='#a4f4cf'
-          />
+          viewBox='0 0 40 40'
+          className='h-12'>
+          <rect rx='12' width='40' height='40' fill='#00d492' />
+
+          <rect x='2' y='0' rx='11' width='38' height='40' fill='#a4f4cf' />
+
           <text
             y='20'
-            x='14'
-            width='128'
-            height='40'
+            x='20'
             fontSize='16'
             fontWeight='700'
-            fontFamily='Cascadia Code'
-            textAnchor='start'
-            alignmentBaseline='central'
-            fill='#004f3b'>
-            Block
-          </text>
-          <rect
-            x='75'
-            y='4'
-            rx='8'
-            width='87'
-            height='32'
-            strokeWidth='2'
-            stroke='#e2e8f0'
-            fill='#fff'
-          />
-          <text
-            y='20'
-            x='119'
-            fontSize='16'
-            fontWeight='700'
-            fontFamily='Cascadia Code'
+            fontFamily="Cascadia Code, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
             textAnchor='middle'
             alignmentBaseline='central'
-            fill='#973c00'>
-            Script
+            fill='#004f3b'>
+            bs
           </text>
         </svg>
       </div>
-      {/* <h1 className='text-3xl font-bold ml-2'>Tu Aplicación</h1> */}
       <div className='flex gap-2'>
         <Button
           title='Nuevo'
           shape='square'
-          onClick={() => setConfirmOpen(true)}>
-          <IconFilePlus className='size-5 text-current' />
-        </Button>
+          onClick={() => setConfirmOpen(true)}
+          icon={IconFilePlus}
+        />
         <Button
           title='Importar'
           shape='square'
-          onClick={() => fileInputRef.current?.click()}>
-          <IconUpload className='size-5 text-current' />
-        </Button>
-        <Button title='Exportar' shape='square' onClick={exportToFile}>
-          <IconDownload className='size-5 text-current' />
-        </Button>
+          onClick={() => fileInputRef.current?.click()}
+          icon={IconUpload}
+        />
+        <Button
+          title='Exportar'
+          shape='square'
+          onClick={exportToFile}
+          icon={IconDownload}
+        />
         <Button
           title='Ejecutar'
           shape='square'
           variant='primary'
           disabled={isRunning}
-          onClick={run}>
-          <IconPlayerPlayFilled className='size-5 text-current' />
-        </Button>
+          onClick={run}
+          icon={IconPlayerPlayFilled}
+        />
       </div>
       <input
         ref={fileInputRef}
