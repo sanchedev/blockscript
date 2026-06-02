@@ -75,11 +75,13 @@ export class Interpreter {
     } as EvalError
   }
 
+  nextAcc: (() => Stmt | undefined)[] = []
+  peekAcc: (() => Stmt | undefined)[] = []
   next(): Stmt | undefined {
-    return
+    return this.nextAcc.at(-1)?.()
   }
   peek(): Stmt | undefined {
-    return
+    return this.peekAcc.at(-1)?.()
   }
 
   async interpret(statements: Stmt[]): Promise<InterpretResult> {
@@ -101,11 +103,13 @@ export class Interpreter {
   }
 
   async executeStatements(stmts: Stmt[], env: Environment) {
-    let index = 0
-    for (const stmt of stmts) {
-      this.next = () => stmts[++index]
-      this.peek = () => stmts[index + 1]
-      this.currentLocation.push({ index, stmt: stmt.name })
+    for (let i = 0; i < stmts.length; i++) {
+      const stmt = stmts[i]
+
+      this.nextAcc.push(() => stmts[++i])
+      this.peekAcc.push(() => stmts[i + 1])
+      console.log(i)
+      this.currentLocation.push({ index: i, stmt: stmt.name })
       if (stmt instanceof ExprStmt) {
         await this.executeExprStmt(stmt, env)
       } else if (stmt instanceof PrintStmt) {
@@ -128,7 +132,8 @@ export class Interpreter {
         )
       }
       this.currentLocation.pop()
-      index++
+      this.nextAcc.pop()
+      this.peekAcc.pop()
     }
   }
 
@@ -160,12 +165,11 @@ export class Interpreter {
         await this.executeStatements(elseIf.body.children, env)
         hasExecuted = true
       }
-      if (this.peek() instanceof ElseStmt) {
-        const elseStmt = this.next() as ElseStmt
-        if (!hasExecuted) {
-          await this.executeStatements(elseStmt.body.children, env)
-        }
-        break
+    }
+    if (this.peek() instanceof ElseStmt) {
+      const elseStmt = this.next() as ElseStmt
+      if (!hasExecuted) {
+        await this.executeStatements(elseStmt.body.children, env)
       }
     }
   }

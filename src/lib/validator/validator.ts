@@ -106,12 +106,10 @@ export class Validator {
           const stmt = statements[next()] as ElseIfStmt
           this.#validateExprContainer(stmt.condition)
           this.#validateBlock(stmt.body)
-
-          if (statements[i + 1] instanceof ElseStmt) {
-            const elseStmt = statements[next()] as ElseStmt
-            this.#validateBlock(elseStmt.body)
-            break
-          }
+        }
+        if (statements[i + 1] instanceof ElseStmt) {
+          const elseStmt = statements[next()] as ElseStmt
+          this.#validateBlock(elseStmt.body)
         }
       } else if (stmt instanceof ElseIfStmt || stmt instanceof ElseStmt) {
         this.#addError(
