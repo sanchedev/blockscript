@@ -107,7 +107,7 @@ export function Entry() {
           excluded: ['input', 'select', 'locked', 'locked *'],
         }}>
         <Menu />
-        <div className='absolute z-10 bottom-2 right-2 flex gap-2'>
+        <div className='fixed z-10 bottom-2 right-2 flex gap-2'>
           <Button
             size='sm'
             shape='square'
