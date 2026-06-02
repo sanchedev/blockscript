@@ -1,9 +1,9 @@
 import type { ToStringExpr } from '../../../../lib/blocks/expressions'
 import { ExprBlock } from '../../ui/expr-block'
-import { ExprComp } from '../expr'
 import type { ExprCompProps } from '../types'
 import { PrimaryType } from '../../../../lib/types'
 import { typeStyles } from '../../../../lib/type-styles'
+import { ExprContainerComp } from '../../ui/expr-container'
 
 export function ToStringExprComp(props: ExprCompProps<ToStringExpr>) {
   return (
@@ -12,11 +12,7 @@ export function ToStringExprComp(props: ExprCompProps<ToStringExpr>) {
       className={`${typeStyles(PrimaryType.string).bg} ${typeStyles(PrimaryType.string).text} font-mono`}>
       <div className='flex gap-2 items-center px-2'>
         <span>texto</span>
-        <ExprComp
-          expr={props.expr.expression}
-          parent={props.expr}
-          edit={(expr) => props.expr.edit(expr)}
-        />
+        <ExprContainerComp container={props.expr.expression} />
       </div>
     </ExprBlock>
   )

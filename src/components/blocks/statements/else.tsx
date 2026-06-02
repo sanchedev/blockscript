@@ -6,14 +6,16 @@ import { BlockStmtComp } from './block'
 export function ElseStmtComp(props: StmtCompProps<ElseStmt>) {
   return (
     <div>
-      <StmtBlock
-        {...props}
-        className='rounded-b-none w-full'>
+      <StmtBlock {...props} className='rounded-b-none w-full'>
         <div className='pl-2 flex gap-4 items-center'>
           <span>sino entonces</span>
         </div>
       </StmtBlock>
-      <BlockStmtComp stmt={props.stmt.body} removeRoundedTop />
+      <BlockStmtComp
+        stmt={props.stmt.body}
+        parent={props.stmt}
+        removeRoundedTop
+      />
     </div>
   )
 }

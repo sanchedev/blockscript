@@ -1,13 +1,18 @@
 import { useEffect, useEffectEvent, useState } from 'react'
 import { ErrorCtx } from '../contexts/error'
 import { type EvalError, type Location } from '../lib/errors'
-import { useGlobalStmt } from '../hooks/global-stmt'
-import { validate as validateErrors } from '../lib/validator/validator'
+import { Validator } from '../lib/validator/validator'
 import { editorChanged } from '../lib/event/events'
+import type { ExportedDefineds } from '../lib/validator/defineds'
+import { useRootStmt } from '../stores/root-stmt'
 
 export function ErrorProvider(props: React.PropsWithChildren) {
-  const { stmt } = useGlobalStmt()
+  const stmt = useRootStmt((state) => state.stmt)
   const [errors, setErrors] = useState<EvalError[]>([])
+  const [defineds, setDefineds] = useState<ExportedDefineds>({
+    vars: new Map(),
+    children: [],
+  })
 
   const getErrorByLocation = (...locations: Location[]) => {
     let err: EvalError | undefined
@@ -30,7 +35,9 @@ export function ErrorProvider(props: React.PropsWithChildren) {
   }
 
   const validate = () => {
-    setErrors(validateErrors(stmt.children))
+    const validator = new Validator()
+    setErrors(validator.validate(stmt.children))
+    setDefineds(validator.defineds.export())
   }
 
   const onEditorChange = useEffectEvent(() => {
@@ -44,6 +51,7 @@ export function ErrorProvider(props: React.PropsWithChildren) {
   return (
     <ErrorCtx
       value={{
+        defineds,
         errors,
         getErrorByLocation,
         validate,

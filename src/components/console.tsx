@@ -85,7 +85,7 @@ function ConsoleLogError({ errors }: { errors: EvalError[] }) {
         {err.location.map((lc) => (
           <pre key={lc.index + '-' + lc.stmt}>
             {'\t\t'}
-            <span className='text-red-400'>[{lc.index}]: </span>
+            <span className='text-red-400'>[{lc.index + 1}]: </span>
             {statementsLabels[lc.stmt]}
           </pre>
         ))}

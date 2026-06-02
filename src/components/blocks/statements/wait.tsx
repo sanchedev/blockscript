@@ -1,5 +1,5 @@
 import type { WaitStmt } from '../../../lib/blocks/statements'
-import { ExprComp } from '../expressions/expr'
+import { ExprContainerComp } from '../ui/expr-container'
 import { StmtBlock } from '../ui/stmt-block'
 import type { StmtCompProps } from './types'
 
@@ -8,11 +8,7 @@ export function WaitStmtComp(props: StmtCompProps<WaitStmt>) {
     <StmtBlock {...props}>
       <div className='pl-2 flex gap-4 items-center'>
         <span>esperar</span>
-        <ExprComp
-          expr={props.stmt.duration}
-          parent={props.stmt}
-          edit={(expr) => props.stmt.edit(expr)}
-        />
+        <ExprContainerComp container={props.stmt.duration} />
         <span>ms</span>
       </div>
     </StmtBlock>

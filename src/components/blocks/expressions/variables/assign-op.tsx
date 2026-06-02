@@ -1,73 +1,81 @@
-import type { AssignOpExpr, AssignOp } from '../../../../lib/blocks/expressions/classes/variables/assign-op'
-import type { Expr } from '../../../../lib/blocks/expressions'
+import { use } from 'react'
+import { ExprCtx } from '../../../../contexts/expr'
+import {
+  type AssignOpExpr,
+  AssignOp,
+} from '../../../../lib/blocks/expressions/classes/variables/assign-op'
 import type { ExprCompProps } from '../types'
-import { ExprComp } from '../expr'
 import { ExprBlock } from '../../ui/expr-block'
-import { useGlobalStmt } from '../../../../hooks/global-stmt'
-import { useVariableIdentifiers } from '../../../../hooks/variables'
 import { typeStyles } from '../../../../lib/type-styles'
 import { PrimaryType } from '../../../../lib/types'
+import { ExprContainerComp } from '../../ui/expr-container'
+import { VariableInput } from '../../ui/inputs/variable-input'
+import { Button } from '../../../ui/button'
+import {
+  IconAsterisk,
+  IconCirclePercentage,
+  IconMinus,
+  IconPlus,
+  IconSlash,
+} from '@tabler/icons-react'
 
-const operators: { value: AssignOp; label: string }[] = [
-  { value: '+=' as AssignOp, label: '+=' },
-  { value: '-=' as AssignOp, label: '-=' },
-  { value: '*=' as AssignOp, label: '*=' },
-  { value: '/=' as AssignOp, label: '/=' },
+const operators = [
+  AssignOp.AddAssign,
+  AssignOp.SubAssign,
+  AssignOp.MulAssign,
+  AssignOp.DivAssign,
+  AssignOp.ModAssign,
+] as const
+const operatorIcons = [
+  IconPlus,
+  IconMinus,
+  IconAsterisk,
+  IconSlash,
+  IconCirclePercentage,
 ]
 
-export function AssignOpExprComp(props: ExprCompProps<AssignOpExpr>) {
-  const { updateAt } = useGlobalStmt()
-  const styles = typeStyles(PrimaryType.number)
-  const identifiers = useVariableIdentifiers()
+const labels = ['Más', 'Menos', 'Por', 'Sobre', 'Módulo']
 
-  const handleIdentifierChange = (value: string) => {
-    props.expr.edit(value, props.expr.operator, props.expr.expression)
-    updateAt()
+export function AssignOpExprComp(props: ExprCompProps<AssignOpExpr>) {
+  const { triggerUpdate } = use(ExprCtx)
+  const styles = typeStyles(PrimaryType.number)
+
+  const handleChange = (value: string) => {
+    props.expr.changeIdentifier(value)
+    triggerUpdate?.()
   }
 
   const handleOperatorChange = (value: string) => {
     const op = value as AssignOp
-    props.expr.edit(props.expr.identifier, op, props.expr.expression)
-    updateAt()
+    props.expr.changeOperator(op)
+    triggerUpdate?.()
   }
 
-  const handleExpressionEdit = (expr: Expr) => {
-    props.expr.edit(props.expr.identifier, props.expr.operator, expr)
-    updateAt()
-  }
-
+  const operatorIndex = operators.indexOf(props.expr.operator)
   return (
     <ExprBlock {...props} className={`${styles.bg} ${styles.text} font-mono`}>
       <div className='flex gap-2 items-center px-2'>
         <span className={styles.text}>asignar</span>
-        <select
-          value={props.expr.identifier}
-          onChange={(e) => handleIdentifierChange(e.target.value)}
-          className={`rounded-lg border-2 border-slate-200 bg-white px-2 py-1 h-8 font-mono has-focus:ring-2 ${styles.ring} outline-0`}>
-          <option value='' disabled>
-            seleccionar...
-          </option>
-          {identifiers.map((v) => (
-            <option key={v} value={v}>
-              {v}
-            </option>
-          ))}
-        </select>
-        <select
-          value={props.expr.operator}
-          onChange={(e) => handleOperatorChange(e.target.value)}
-          className={`rounded-lg border-2 border-slate-200 bg-white px-2 py-1 h-8 font-mono has-focus:ring-2 ${styles.ring} outline-0`}>
-          {operators.map((op) => (
-            <option key={op.value} value={op.value}>
-              {op.label}
-            </option>
-          ))}
-        </select>
-        <ExprComp
-          expr={props.expr.expression}
-          parent={props.expr}
-          edit={handleExpressionEdit}
+        <VariableInput
+          exprType={props.expr.type}
+          identifier={props.expr.identifier}
+          onIdentifierChange={handleChange}
         />
+        <Button
+          className='border-red-300 bg-white not-disabled:hover:bg-slate-100 ring-red-600 text-red-800'
+          variant='free'
+          shape='square'
+          size='sm'
+          aria-label={labels[operatorIndex]}
+          title={labels[operatorIndex]}
+          onClick={() =>
+            handleOperatorChange(
+              operators[(operatorIndex + 1) % operators.length],
+            )
+          }
+          icon={operatorIcons[operatorIndex]}
+        />
+        <ExprContainerComp container={props.expr.expression} />
       </div>
     </ExprBlock>
   )

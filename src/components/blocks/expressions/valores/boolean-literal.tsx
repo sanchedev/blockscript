@@ -1,18 +1,19 @@
 import type { BooleanLiteralExpr } from '../../../../lib/blocks/expressions'
 import { ExprBlock } from '../../ui/expr-block'
 import type { ExprCompProps } from '../types'
-import { useGlobalStmt } from '../../../../hooks/global-stmt'
+import { use } from 'react'
+import { ExprCtx } from '../../../../contexts/expr'
 import { PrimaryType } from '../../../../lib/types'
 import { typeStyles } from '../../../../lib/type-styles'
 
 export function BooleanLiteralExprComp(
   props: ExprCompProps<BooleanLiteralExpr>,
 ) {
-  const { updateAt } = useGlobalStmt()
+  const { triggerUpdate } = use(ExprCtx)
 
   const handleChange = () => {
     props.expr.edit(!props.expr.literal)
-    updateAt()
+    triggerUpdate?.()
   }
 
   return (

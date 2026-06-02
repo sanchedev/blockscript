@@ -1,59 +1,60 @@
-import type { IncrementExpr, IncrementOp } from '../../../../lib/blocks/expressions/classes/variables/increment'
+import { use } from 'react'
+import { ExprCtx } from '../../../../contexts/expr'
+import {
+  IncrementOp,
+  type IncrementExpr,
+} from '../../../../lib/blocks/expressions/classes/variables/increment'
 import type { ExprCompProps } from '../types'
 import { ExprBlock } from '../../ui/expr-block'
-import { useGlobalStmt } from '../../../../hooks/global-stmt'
-import { useVariableIdentifiers } from '../../../../hooks/variables'
 import { typeStyles } from '../../../../lib/type-styles'
 import { PrimaryType } from '../../../../lib/types'
+import { VariableInput } from '../../ui/inputs/variable-input'
+import { Button } from '../../../ui/button'
+import { IconExposureMinus1, IconExposurePlus1 } from '@tabler/icons-react'
 
-const operators: { value: IncrementOp; label: string }[] = [
-  { value: '++' as IncrementOp, label: '++' },
-  { value: '--' as IncrementOp, label: '--' },
-]
+const operators = [IncrementOp.Increment, IncrementOp.Decrement]
+const operatorIcons = [IconExposurePlus1, IconExposureMinus1]
+const labels = ['incrementar', 'decrementar']
 
 export function IncrementExprComp(props: ExprCompProps<IncrementExpr>) {
-  const { updateAt } = useGlobalStmt()
+  const { triggerUpdate } = use(ExprCtx)
   const styles = typeStyles(PrimaryType.number)
-  const identifiers = useVariableIdentifiers()
 
-  const handleIdentifierChange = (value: string) => {
-    props.expr.edit(value, props.expr.operator)
-    updateAt()
+  const handleChange = (value: string) => {
+    props.expr.changeIdentifier(value)
+    triggerUpdate?.()
   }
 
   const handleOperatorChange = (value: string) => {
     const op = value as IncrementOp
-    props.expr.edit(props.expr.identifier, op)
-    updateAt()
+    props.expr.changeOperator(op)
+    triggerUpdate?.()
   }
 
+  const operatorIndex = operators.indexOf(props.expr.operator)
   return (
     <ExprBlock {...props} className={`${styles.bg} ${styles.text} font-mono`}>
       <div className='flex gap-2 items-center px-2'>
-        <span className={styles.text}>asignar</span>
-        <select
-          value={props.expr.identifier}
-          onChange={(e) => handleIdentifierChange(e.target.value)}
-          className={`rounded-lg border-2 border-slate-200 bg-white px-2 py-1 h-8 font-mono has-focus:ring-2 ${styles.ring} outline-0`}>
-          <option value='' disabled>
-            seleccionar...
-          </option>
-          {identifiers.map((v) => (
-            <option key={v} value={v}>
-              {v}
-            </option>
-          ))}
-        </select>
-        <select
-          value={props.expr.operator}
-          onChange={(e) => handleOperatorChange(e.target.value)}
-          className={`rounded-lg border-2 border-slate-200 bg-white px-2 py-1 h-8 font-mono has-focus:ring-2 ${styles.ring} outline-0`}>
-          {operators.map((op) => (
-            <option key={op.value} value={op.value}>
-              {op.label}
-            </option>
-          ))}
-        </select>
+        <span className={styles.text}>{labels[operatorIndex]}</span>
+        <VariableInput
+          exprType={props.expr.type}
+          identifier={props.expr.identifier}
+          onIdentifierChange={handleChange}
+        />
+        <Button
+          className='border-red-300 bg-white not-disabled:hover:bg-slate-100 ring-red-600 text-red-800'
+          variant='free'
+          shape='square'
+          size='sm'
+          aria-label={labels[operatorIndex]}
+          title={labels[operatorIndex]}
+          onClick={() =>
+            handleOperatorChange(
+              operators[(operatorIndex + 1) % operators.length],
+            )
+          }
+          icon={operatorIcons[operatorIndex]}
+        />
       </div>
     </ExprBlock>
   )

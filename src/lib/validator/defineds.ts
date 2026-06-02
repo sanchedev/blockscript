@@ -1,25 +1,45 @@
 import { ErrorType, type ErrorInfo } from '../errors'
 import type { Type } from '../types'
 
-export class Defineds {
-  constructor(public parent?: Defineds) {}
+export interface ExportedDefineds {
+  vars: Map<string, VariableInfo>
+  parent?: ExportedDefineds
+  children: ExportedDefineds[]
+}
 
-  #definedVars = new Map<string, Type>()
+interface VariableInfo {
+  type: Type
+  path: number[]
+}
+
+export class Defineds {
+  constructor(public parent?: Defineds) {
+    parent?._children.push(this)
+  }
+
+  #definedVars = new Map<string, VariableInfo>()
+
+  _children: Defineds[] = []
 
   _getAbsolute(identifier: string): Type | undefined {
     return (
-      this.#definedVars.get(identifier) ?? this.parent?._getAbsolute(identifier)
+      this.#definedVars.get(identifier)?.type ??
+      this.parent?._getAbsolute(identifier)
     )
   }
 
-  define(identifier: string, type: Type): ErrorInfo | undefined {
+  define(
+    identifier: string,
+    type: Type,
+    path: number[],
+  ): ErrorInfo | undefined {
     if (this.#definedVars.has(identifier)) {
       return {
         type: ErrorType.DuplicateVariable,
         message: `La variable '${identifier}' ya fue declarada`,
       }
     }
-    this.#definedVars.set(identifier, type)
+    this.#definedVars.set(identifier, { type, path })
   }
 
   assing(identifier: string, type: Type): ErrorInfo | undefined {
@@ -48,5 +68,19 @@ export class Defineds {
         message: `Variable no definida: '${identifier}'`,
       }
     }
+  }
+
+  addChild(defineds: Defineds) {
+    this._children.push(defineds)
+  }
+
+  export(): ExportedDefineds {
+    const def: ExportedDefineds = {
+      vars: this.#definedVars,
+      children: [],
+    }
+    def.children = this._children.map((d) => ({ ...d.export(), parent: def }))
+
+    return def
   }
 }

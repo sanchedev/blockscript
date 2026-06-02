@@ -1,5 +1,8 @@
 import { AssignExpr } from './blocks/expressions/classes/variables/assign'
-import { AssignOp, AssignOpExpr } from './blocks/expressions/classes/variables/assign-op'
+import {
+  AssignOp,
+  AssignOpExpr,
+} from './blocks/expressions/classes/variables/assign-op'
 import {
   IncrementOp,
   IncrementExpr,
@@ -30,9 +33,10 @@ import { ReadExpr } from './blocks/expressions/classes/valores/read'
 import { PrintStmt } from './blocks/statements/classes/print-stmt'
 import { VariableStmt } from './blocks/statements/classes/variable-stmt'
 import { ElseStmt, IfStmt } from './blocks/statements'
-import { validate } from './validator/validator'
+import { Validator } from './validator/validator'
 import { ErrorType, type EvalError, type Location } from './errors'
 import { statementsLabels } from './blocks/statements/records/labels'
+import type { ExprContainer } from './blocks/shared/classes/expr-container'
 
 interface Environment {
   vars: Map<string, unknown>
@@ -79,7 +83,8 @@ export class Interpreter {
   }
 
   async interpret(statements: Stmt[]): Promise<InterpretResult> {
-    const errors = validate(statements)
+    const validator = new Validator()
+    const errors = validator.validate(statements)
     if (errors.length > 0) {
       return { output: null, errors }
     }
@@ -126,26 +131,31 @@ export class Interpreter {
       index++
     }
   }
+
   async executeExprStmt(stmt: ExprStmt, env: Environment) {
-    await this.evaluate(stmt.expression, env)
+    await this.evaluateExprContainer(stmt.expression, env)
   }
   async executePrintStmt(stmt: PrintStmt, env: Environment) {
-    const value = await this.evaluate(stmt.expression, env)
+    const value = await this.evaluateExprContainer(stmt.expression, env)
     this.write(formatValue(value))
   }
   async executeVariableStmt(stmt: VariableStmt, env: Environment) {
-    const value = await this.evaluate(stmt.expression, env)
+    const value = await this.evaluateExprContainer(stmt.expression, env)
     env.vars.set(stmt.identifier, value)
   }
   async executeIfStmt(stmt: IfStmt, env: Environment) {
-    const conditionValue = Boolean(await this.evaluate(stmt.condition, env))
+    const conditionValue = Boolean(
+      await this.evaluateExprContainer(stmt.condition, env),
+    )
     if (conditionValue) {
       await this.executeStatements(stmt.thenBody.children, env)
     }
     let hasExecuted = conditionValue
     while (this.peek() instanceof ElseIfStmt) {
       const elseIf = this.next() as ElseIfStmt
-      const elseIfConditionValue = Boolean(await this.evaluate(elseIf.condition, env))
+      const elseIfConditionValue = Boolean(
+        await this.evaluateExprContainer(elseIf.condition, env),
+      )
       if (!hasExecuted && elseIfConditionValue) {
         await this.executeStatements(elseIf.body.children, env)
         hasExecuted = true
@@ -160,9 +170,8 @@ export class Interpreter {
     }
   }
   async executeWhileStmt(stmt: WhileStmt, env: Environment) {
-    console.log(await this.evaluate(stmt.condition, env))
     let max = 0
-    while (await this.evaluate(stmt.condition, env)) {
+    while (await this.evaluateExprContainer(stmt.condition, env)) {
       max++
       await this.executeStatements(stmt.body.children, env)
       if (max >= 65536) {
@@ -183,13 +192,13 @@ export class Interpreter {
           'Se excedió el número máximo (65536) de ciclos que puede hacer un bucle.',
         )
       }
-    } while (await this.evaluate(stmt.condition, env))
+    } while (await this.evaluateExprContainer(stmt.condition, env))
   }
 
   async executeForStmt(stmt: ForStmt, env: Environment) {
-    const start = await this.evaluate(stmt.start, env) as number
-    const end = await this.evaluate(stmt.end, env) as number
-    const step = await this.evaluate(stmt.step, env) as number
+    const start = (await this.evaluateExprContainer(stmt.start, env)) as number
+    const end = (await this.evaluateExprContainer(stmt.end, env)) as number
+    const step = (await this.evaluateExprContainer(stmt.step, env)) as number
     let max = 0
     for (let i = start; step > 0 ? i <= end : i >= end; i += step) {
       env.vars.set(stmt.identifier, i)
@@ -204,8 +213,15 @@ export class Interpreter {
   }
 
   async executeWaitStmt(stmt: WaitStmt, env: Environment) {
-    const duration = await this.evaluate(stmt.duration, env) as number
-    await new Promise(resolve => setTimeout(resolve, duration))
+    const duration = (await this.evaluateExprContainer(
+      stmt.duration,
+      env,
+    )) as number
+    await new Promise((resolve) => setTimeout(resolve, duration))
+  }
+
+  async evaluateExprContainer(container: ExprContainer, env: Environment) {
+    return this.evaluate(container.get() ?? new NullLiteralExpr(), env)
   }
 
   // Expressions
@@ -226,7 +242,7 @@ export class Interpreter {
       return env.vars.get((expr as VariableExpr).identifier) ?? null
     }
     if (expr instanceof AssignExpr) {
-      const value = await this.evaluate(expr.expression, env)
+      const value = await this.evaluateExprContainer(expr.expression, env)
       env.vars.set(expr.identifier, value)
       return value
     }
@@ -243,15 +259,15 @@ export class Interpreter {
       return await this.evalBinaryComp(expr, env)
     }
     if (expr instanceof ConcatExpr) {
-      const left = String(await this.evaluate(expr.left, env))
-      const right = String(await this.evaluate(expr.right, env))
+      const left = String(await this.evaluateExprContainer(expr.left, env))
+      const right = String(await this.evaluateExprContainer(expr.right, env))
       return left + right
     }
     if (expr instanceof ToStringExpr) {
-      return formatValue(await this.evaluate(expr.expression, env))
+      return formatValue(await this.evaluateExprContainer(expr.expression, env))
     }
     if (expr instanceof ToNumberExpr) {
-      const raw = await this.evaluate(expr.expression, env)
+      const raw = await this.evaluateExprContainer(expr.expression, env)
       const value = Number(raw)
       if (isNaN(value)) {
         this.addRuntimeErr(`El valor "${raw}" no se puede convertir a número.`)
@@ -259,15 +275,21 @@ export class Interpreter {
       return value
     }
     if (expr instanceof ToBooleanExpr) {
-      return String(await this.evaluate(expr.expression, env)).length > 0
+      return (
+        String(await this.evaluateExprContainer(expr.expression, env)).length >
+        0
+      )
     }
     if (expr instanceof LogicalExpr) {
-      const left = Boolean(await this.evaluate(expr.left, env))
-      const right = Boolean(await this.evaluate(expr.right, env))
+      const left = Boolean(await this.evaluateExprContainer(expr.left, env))
+      const right = Boolean(await this.evaluateExprContainer(expr.right, env))
       return expr.operator === 'Y' ? left && right : left || right
     }
     if (expr instanceof ReadExpr) {
-      const message = await this.evaluate(expr.prompt, env) as string
+      const message = (await this.evaluateExprContainer(
+        expr.prompt,
+        env,
+      )) as string
       const result = window.prompt(message) ?? ''
       this.write(`${message}${result}`)
       return result ?? null
@@ -276,8 +298,8 @@ export class Interpreter {
     return null
   }
   async evalBinary(expr: BinaryExpr, env: Environment) {
-    const left = await this.evaluate(expr.left, env) as number
-    const right = await this.evaluate(expr.right, env) as number
+    const left = (await this.evaluateExprContainer(expr.left, env)) as number
+    const right = (await this.evaluateExprContainer(expr.right, env)) as number
 
     const op = arithmeticOps[expr.operator]
     if (op == null) return null
@@ -285,8 +307,8 @@ export class Interpreter {
     return op(left, right)
   }
   async evalBinaryComp(expr: BinaryCompExpr, env: Environment) {
-    const left = await this.evaluate(expr.left, env) as number
-    const right = await this.evaluate(expr.right, env) as number
+    const left = (await this.evaluateExprContainer(expr.left, env)) as number
+    const right = (await this.evaluateExprContainer(expr.right, env)) as number
 
     const op = comparisonOps[expr.operator]
     if (op == null) return null
@@ -295,7 +317,10 @@ export class Interpreter {
   }
   async evalAssignOp(expr: AssignOpExpr, env: Environment) {
     const current = env.vars.get(expr.identifier) as number
-    const right = await this.evaluate(expr.expression, env) as number
+    const right = (await this.evaluateExprContainer(
+      expr.expression,
+      env,
+    )) as number
     const result = assignOps[expr.operator](current, right)
     env.vars.set(expr.identifier, result)
     return result
@@ -331,4 +356,5 @@ const assignOps: Record<AssignOp, (a: number, b: number) => number> = {
   [AssignOp.SubAssign]: (a, b) => a - b,
   [AssignOp.MulAssign]: (a, b) => a * b,
   [AssignOp.DivAssign]: (a, b) => a / b,
+  [AssignOp.ModAssign]: (a, b) => a % b,
 }

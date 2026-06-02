@@ -3,9 +3,11 @@ import type { Expr } from '../lib/blocks/expressions'
 import type { Stmt } from '../lib/blocks/statements'
 
 export interface ExprContext {
-  expr: Expr
-  parent: Stmt | Expr
-  edit(expr: Expr): void
+  parent?: Stmt | Expr
+  triggerUpdate(): void
 }
 
-export const ExprCtx = createContext<ExprContext>(null!)
+export const ExprCtx = createContext<ExprContext>({
+  parent: undefined!,
+  triggerUpdate: undefined!,
+})

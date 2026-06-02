@@ -1,12 +1,12 @@
 import type { NullLiteralExpr } from '../../../../lib/blocks/expressions'
 import { ExprBlock } from '../../ui/expr-block'
-import { Input } from '../../ui/input'
+import { InputD } from '../../ui/input-d'
 import type { ExprCompProps } from '../types'
 
 export function NullLiteralExprComp(props: ExprCompProps<NullLiteralExpr>) {
   return (
     <ExprBlock {...props}>
-      <Input
+      <InputD
         type='text'
         value='nulo'
         disabled

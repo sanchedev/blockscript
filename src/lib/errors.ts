@@ -2,6 +2,7 @@ import type { Statements } from './blocks/statements/enum'
 
 export enum ErrorType {
   Type = 'Error de Tipo',
+  Required = 'Expresión Requerida',
   UndefinedVariable = 'Variable no definida',
   DuplicateVariable = 'Variable duplicada',
   MissingIdentifier = 'Identificador faltante',
