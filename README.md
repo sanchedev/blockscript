@@ -29,9 +29,10 @@ pnpm preview    # vite preview
 | Lenguaje | TypeScript 6 |
 | Build | Vite 8 + Rolldown |
 | Estilos | TailwindCSS 4 + tailwind-animations |
-| Estado | Zustand 5 (solo sidebar) + Context (stmt/error/output/location) |
+| Estado | Zustand 5 (root-stmt, drag, menu, console) + Context (error, output) |
 | Zoom/Pan | react-zoom-pan-pinch |
 | Iconos | @tabler/icons-react |
+| Serialización | Zod |
 | Utilidades | clsx |
 
 ## Statements (11)
@@ -39,16 +40,16 @@ pnpm preview    # vite preview
 | Clase | name | Props |
 |---|---|---|
 | `BlockStmt` | `block-stmt` | `children: Stmt[]` |
-| `ExprStmt` | `expr-stmt` | `expression: Expr` |
-| `PrintStmt` | `print-stmt` | `expression: Expr` |
-| `VariableStmt` | `variable-stmt` | `identifier, expression: Expr` |
-| `IfStmt` | `if-stmt` | `condition: Expr, thenBody: BlockStmt` |
-| `ElseIfStmt` | `else-if-stmt` | `condition: Expr, body: BlockStmt` |
+| `ExprStmt` | `expr-stmt` | `expression: ExprContainer` |
+| `PrintStmt` | `print-stmt` | `expression: ExprContainer` |
+| `VariableStmt` | `variable-stmt` | `identifier, expression: ExprContainer` |
+| `IfStmt` | `if-stmt` | `condition: ExprContainer, thenBody: BlockStmt` |
+| `ElseIfStmt` | `else-if-stmt` | `condition: ExprContainer, body: BlockStmt` |
 | `ElseStmt` | `else-stmt` | `body: BlockStmt` |
-| `WhileStmt` | `while-stmt` | `condition: Expr, body: BlockStmt` |
-| `DoWhileStmt` | `do-while-stmt` | `condition: Expr, body: BlockStmt` |
-| `ForStmt` | `for-stmt` | `identifier, start, end, step: Expr, body: BlockStmt` |
-| `WaitStmt` | `wait-stmt` | `duration: Expr` |
+| `WhileStmt` | `while-stmt` | `condition: ExprContainer, body: BlockStmt` |
+| `DoWhileStmt` | `do-while-stmt` | `condition: ExprContainer, body: BlockStmt` |
+| `ForStmt` | `for-stmt` | `identifier, start, end, step: ExprContainer, body: BlockStmt` |
+| `WaitStmt` | `wait-stmt` | `duration: ExprContainer` |
 
 ## Expressions (16)
 
@@ -114,26 +115,34 @@ pnpm preview    # vite preview
 
 ## Arquitectura
 
-- **Entrypoint**: `src/main.tsx` → `App.tsx` → `Header` + `Entry` (zoom/pan via react-zoom-pan-pinch) + `Sidebar` + `Console`
-- **State**: `GlobalStmtCtx` + `ErrorCtx` + `OutputCtx` + `LocationCtx` (context). Zustand solo para sidebar.
-- **CRUD**: path de índices en `BlockStmt.children` (`addAt`, `removeAt`, `replaceAt`, `move`, `updateAt`). `useGlobalStmt` resuelve path desde `LocationCtx`.
-- **Condicionales (sibling pattern)**: `IfStmt`, `ElseIfStmt`, `ElseStmt` viven como hermanos en `children[]`, no como linked list. Validador e intérprete usan `peek()`/`next()` para recorrerlos.
-- **Interpreter**: `executeStatements()` con `peek()`/`next()` dinámicos. Bucles limitados a 65536 iteraciones. Step negativo soportado en `ForStmt`.
+- **Entrypoint**: `src/main.tsx` → `App.tsx` → `Header` + `Entry` (zoom/pan via react-zoom-pan-pinch) + `Menu` + `Console`
+- **State**: `useRootStmt` (Zustand) como fuente de verdad del árbol. Cada `StmtComp`/`ExprComp` mantiene copia local vía `useState`. La mutación fluye: hijo → `triggerUpdate()` → `copy()` → `setState()` local. `BlockStmtCtx` provee `edit(index, stmt)` y `remove(index)`.
+  - `StmtCtx` provee `{ parent, triggerUpdate }`
+  - `ExprCtx` provee `{ parent, triggerUpdate }`
+  - `ExprContainerCtx` provee `{ container, triggerUpdate }`
+  - Error/Output vía `ErrorCtx` + `OutputCtx`
+- **Drag & drop**: `drag-store` (Zustand) maneja el arrastre activo. `stmt-drags`/`expr-drags` almacenan items flotantes. El drag image nativo se oculta; un skeleton inline sigue al cursor. `BlockStmtComp` acepta drop de statements. `ExprContainerComp` acepta drop de expresiones con validación de tipo.
+- **Menú**: reemplaza la sidebar anterior. Tabs de expresiones/declaraciones con search y skeletons visuales clickables. Al clickear, crea instancia via `ClassName.default` y la agrega como item flotante.
+- **Condicionales (sibling pattern)**: `IfStmt`, `ElseIfStmt`, `ElseStmt` viven como hermanos en `children[]`. Validador e intérprete usan `peek()`/`next()` para recorrerlos.
+- **Interpreter**: `executeStatements()` con `peek()`/`next()` dinámicos. Bucles limitados a 65536 iteraciones. Step negativo soportado en `ForStmt`. Todos los métodos async para evitar congelar la UI.
 - **Validator**: `Defineds` class con scoping padre-hijo. Recorre recursivamente con soporte para `BlockStmt` anidados.
-- **Sidebar**: event-driven request/response vía `useSidebarStore.send()`. Secciones construidas desde `statementsGroups`/`expressionsGroups` con colores por grupo.
-- **Eventos**: pub/sub con `Event<T>` (`editorChanged`, `sidebarInfoRecieved`, `sidebarInfoSended`).
-- **Persistencia**: autosave a `localStorage` (`blockscript-save`) cada 5s con debounce. Export/import `.bs` via `serialize()`/`deserialize()`.
+- **Serializer**: Zod `configSchema` + `createFrom(rawConfig)` + `export()` en cada clase. `Stmt.createFrom()`/`Expr.createFrom()` delegan por `name`. Persistencia: autosave a `localStorage` cada 5s con debounce. Export/import `.bs` via `exportToFile()`.
+- **Eventos**: pub/sub con `Event<T>` (`editorChanged`).
+- **Skeletons**: `ExprSkeleton`/`StmtSkeleton` — componentes read-only que renderizan la estructura visual completa. Usados en menú y como ghost drag. Colores derivados de `typeStyles()` / `blockColorMap`.
+- **UI components**: `Button` con variants, `ResizeInput` (autoajuste de ancho), `VariableInput` con datalist para autocompletado.
+- **IDs**: `crypto.randomUUID()` en constructor, preservado en `copy()`.
 
 ## Agregar una expresión
 
 1. `expressions/enum.ts` → agregar al enum
-2. `expressions/classes/<grupo>/<name>.ts` → clase (`edit()`, `copy()`, `migrateFrom()`, `type`)
+2. `expressions/classes/<grupo>/<name>.ts` → clase (`static default`, `static configSchema`, `static createFrom`, `copy()`, `export()`, `edit()`, `type`)
 3. `expressions/classes/index.ts` → export
 4. `expressions/records/classes.ts`, `labels.ts`, `groups.ts`
 5. `components/blocks/expressions/<grupo>/<name>.tsx` → componente
 6. `components/blocks/expressions/expr.tsx` → dispatch `instanceof`
-7. `validator/validator.ts` → `collectExprErrors` + validación de tipo
-8. `interpreter.ts` → `evaluate()`
+7. `components/blocks/ui/skeletons/expr-skeleton.tsx` → dispatch `instanceof`
+8. `validator/validator.ts` → `collectExprErrors` + validación de tipo
+9. `interpreter.ts` → `evaluate()`
 
 ## SEO & PWA
 

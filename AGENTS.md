@@ -1,6 +1,6 @@
 # BlockScript
 
-Editor visual de programación por bloques. React 19 + TypeScript 6 + Vite 8 + TailwindCSS 4 + Zustand 5 (solo sidebar).
+Editor visual de programación por bloques. React 19 + TypeScript 6 + Vite 8 + TailwindCSS 4 + Zustand 5 (root-stmt, drag, menu, console).
 
 > **Sync:** Cada cambio importante en statements, expressions, validación, colores o arquitectura debe registrarse tanto en `README.md` (visión pública) como en `AGENTS.md` (referencia operativa). Mantener ambos sincronizados.
 
@@ -15,23 +15,30 @@ pnpm preview      # vite preview
 
 ## Arquitectura
 
-- **Statements** (`src/lib/blocks/statements/classes/`) — `Stmt` (abstract, `id: string`, `name: Statements`), `BlockStmt` (raíz con `children: Stmt[]`), `ExprStmt`, `PrintStmt`, `VariableStmt`, `IfStmt`, `ElseIfStmt`, `ElseStmt`, `WhileStmt`, `DoWhileStmt`, `ForStmt`
+- **Statements** (`src/lib/blocks/statements/classes/`) — `Stmt` (abstract, `id: string`, `name: Statements`, `static createFrom`, `export`, `copy`, `configSchema` con Zod), `BlockStmt` (raíz con `children: Stmt[]`), `ExprStmt`, `PrintStmt`, `VariableStmt`, `IfStmt`, `ElseIfStmt`, `ElseStmt`, `WhileStmt`, `DoWhileStmt`, `ForStmt`
   - Registros en `records/`: `classes.ts`, `labels.ts`, `groups.ts`
-  - Enum `Statements` incluye `Stmt`, `Expr`, `Print`, `Variable`, `Block`, `If`, `ElseIf`, `Else`, `While`, `DoWhile`, `For`, `Wait`
-- **Expressions** (`src/lib/blocks/expressions/classes/`) — `Expr` (abstract, `type: PrimaryType`), más 16 clases concretas organizadas en subdirectorios por grupo:
+  - Enum `Statements`: `Stmt`, `Expr`, `Print`, `Variable`, `Block`, `If`, `ElseIf`, `Else`, `While`, `DoWhile`, `For`, `Wait`
+- **Expressions** (`src/lib/blocks/expressions/classes/`) — `Expr` (abstract, `type: PrimaryType`, `static createFrom`, `export`, `copy`, `configSchema` con Zod), más 16 clases concretas organizadas en subdirectorios por grupo:
   - `valores/`: NumberLiteralExpr, StringLiteralExpr, BooleanLiteralExpr, NullLiteralExpr, ReadExpr
   - `operaciones/`: BinaryExpr, BinaryCompExpr, LogicalExpr
   - `variables/`: VariableExpr, AssignExpr, AssignOpExpr, IncrementExpr
   - `conversion/`: ConcatExpr, ToStringExpr, ToNumberExpr, ToBooleanExpr
   - Registros en `records/`: `classes.ts`, `labels.ts`, `groups.ts`
-  - Enum `Expressions` con 16 valores (incluye `AssignOp`, `Increment`, `ToNumber`, `ToBoolean`, `Logical`)
+  - Enum `Expressions` con 17 valores (incluye `Expression` base, `AssignOp`, `Increment`, `ToNumber`, `ToBoolean`, `Logical`)
 - **Componentes de expresiones** (`src/components/blocks/expressions/`) — mismo mirror de directorios que `classes/`:
   - `valores/`, `operaciones/`, `variables/`, `conversion/` con sus respectivos `.tsx`
-- **State**: no hay stores Zustand (excepto `sidebar-store`). Statements vía `GlobalStmtCtx` (context) + `GlobalStmtProvider`. Errores vía `ErrorCtx` + `ErrorProvider`. Output vía `OutputCtx` + `OutputProvider`. Location vía `LocationCtx` anidado con `LocationProvider`.
-- **CRUD de statements**: basado en path de índices (`addAt`, `removeAt`, `replaceAt`, `move`, `updateAt`, `replaceStmt`), no en líneas. Los paths recorren `BlockStmt.children`. El hook `useGlobalStmt` resuelve automáticamente el path desde `LocationCtx`. `replaceStmt(stmt)` reemplaza el árbol completo (usado por importar/nuevo).
-- **Block add-on-hover**: cada statement en `BlockStmtComp` tiene un botón `+` (hover) que abre el sidebar picker para insertar un nuevo statement después del actual.
-- **Entrypoint**: `src/main.tsx` → `App.tsx` → `Header` + `Entry` (editor con zoom/pan via `react-zoom-pan-pinch`) + `Sidebar` + `Console`
+- **State**: `useRootStmt` (Zustand) almacena el `BlockStmt` raíz. Cada `StmtComp`/`ExprComp` mantiene su propio `useState` local (copia de trabajo). La mutación fluye: hijo → `triggerUpdate()` → `copy()` → `setState()` local. `BlockStmtCtx` provee `edit(index, stmt)` y `remove(index)` que mutan el array del padre + `triggerUpdate()`.
+  - `StmtCtx` provee `{ parent, triggerUpdate }` a statements hijos
+  - `ExprCtx` provee `{ parent, triggerUpdate }` a expresiones hijas
+  - `ExprContainerCtx` provee `{ container, triggerUpdate }` a `ExprComp` dentro de un contenedor
+  - Errores vía `ErrorCtx` + `ErrorProvider`. Output vía `OutputCtx` + `OutputProvider`.
+- **Drag & drop**: `drag-store` (Zustand, `DragData` con `obj`, `pickPosition`, `unlock`) maneja el arrastre activo. `stmt-drags` y `expr-drags` (Zustand) almacenan items flotantes (posicionados fuera del árbol). El drag image nativo se oculta con `setDragImage(new Image(),0,0)`. Durante el drag, un skeleton sigue al cursor renderizado inline (calculando coordenadas del board con `useTransformContext`). El original se vuelve `opacity-25`.
+  - `BlockStmtComp` acepta drop de statements flotantes
+  - `ExprContainerComp` acepta drop de expresiones flotantes con validación de tipo
+  - `Board` renderiza items flotantes + `BlockStmtComp` raíz
+- **Entrypoint**: `src/main.tsx` → `App.tsx` → `Header` + `Entry` (editor con zoom/pan via `react-zoom-pan-pinch`) + `Menu` + `Console`
 - **Tipos**: `PrimaryType` enum con `número`, `texto`, `V / F`, `nulo`. `Expr.type` se asigna estáticamente en cada clase.
+- **Serializer**: Zod schemas con `static configSchema`, `static createFrom(rawConfig)`, y `export()` en cada clase. `Stmt.createFrom()` y `Expr.createFrom()` delegan a la clase concreta via `statementsClasses`/`expressionsClasses`. Las bases definen `id` + `name`; cada concreta extiende con sus props.
 - **Validator** (`src/lib/validator/validator.ts` + `defineds.ts`): `Defineds` class con scoping padre-hijo (soporta `BlockStmt` anidados). `validate()` recorre recursivamente, incluyendo hijos de `BlockStmt`.
   - IfStmt: valida `condition` tipo `V / F`, valida `thenBody` recursivamente, luego camina hermanos `ElseIfStmt`/`ElseStmt` con `statements[i + 1]`.
   - ElseIfStmt/ElseStmt huérfanos (sin IfStmt previo) → `ErrorType.InvalidStatement`.
@@ -40,25 +47,23 @@ pnpm preview      # vite preview
   - ForStmt: valida `start`, `end`, `step` como `número`; crea `Defineds` hijo con loop variable; valida `body` recursivamente.
 - **Interpreter** (`src/lib/interpreter.ts`): `executeStatements()` usa `peek()`/`next()` dinámicos. `executeIfStmt()` evalúa condición, ejecuta `thenBody`, luego recorre hermanos `ElseIfStmt`/`ElseStmt` con `peek()`/`next()` y flag `hasExecuted` para cortocircuito. `executeWhileStmt()` evalúa condición y ejecuta `body.children` en loop mientras sea verdadera. `executeDoWhileStmt()` ejecuta body al menos una vez. `executeForStmt()` evalúa start/end/step, loop con incremento (soporta step negativo). `executeWaitStmt()` espera N ms via `await new Promise(r => setTimeout(r, N))`. El intérprete es **async**: todos los métodos de ejecución y evaluación devuelven `Promise`, lo que evita congelar la página en bucles largos.
 - **Condicionales (sibling pattern)**: IfStmt, ElseIfStmt y ElseStmt viven como hermanos en `BlockStmt.children[]` (no como linked list con `elseBody`). El intérprete y validador usan `peek()`/`next()` y `statements[i + 1]` para consumirlos secuencialmente.
-- **Eventos**: `editorChanged`, `sidebarInfoRecieved`, `sidebarInfoSended` — pub/sub con `Event<T>` class.
-- **Sidebar**: event-driven request/response vía `useSidebarStore.send()`. Componentes pasan `{ title, style, icon, options }[]` donde `icon` se renderiza en el tab. Las secciones se construyen desde `statementsGroups`/`expressionsGroups` (cada grupo tiene su `sectionColor` que resuelve a `sectionColorMap`).
-- **ExprCtx**: provee `{ expr, parent, edit }` a componentes de expresión. Los hijos llaman `edit(newExpr)` para reemplazar, y `updateAt()` para persistir.
-- **Hooks útiles**: `useVariableIdentifiers()` recolecta variables definidas en ámbito. `useVariableType()` devuelve función `(id) => Type` para resolver tipo de variable. `useVariableUpdateReferences(oldId, newId, type)` renombra y actualiza tipo de todas las `VariableExpr`/`AssignExpr` que referencian `oldId`, recorriendo recursivamente statements y sub-expresiones vía `exploreToVariableExprs()`.
-  - **⚠️ `exploreToVariableExprs()` no atraviesa `condition`/`thenBody`/`body` de IfStmt/ElseIfStmt/ElseStmt/WhileStmt/DoWhileStmt** — renombrar variables no encontrará referencias dentro de condicionales/bucles.
+- **Eventos**: `editorChanged` — pub/sub con `Event` class.
+- **Menú**: reemplaza la sidebar anterior. `Menu.tsx` con tabs de expresiones/declaraciones, search, y skeletons visuales como items clickables. Al clickear, crea una instancia y la agrega a `stmt-drags`/`expr-drags` como item flotante en el board.
+- **Skeletons**: `ExprSkeleton({ expr })` y `StmtSkeleton({ stmt })` — componentes read-only que renderizan la estructura visual completa. Usados en el menú (reemplazando botones de texto) y como ghost durante drag. Colores derivados de `typeStyles()` para expresiones y `blockColorMap` para statements.
+- **Hooks útiles**: `useVariableIdentifiers()` recolecta variables definidas en ámbito vía `Defineds`. `useVariableType()` resuelve tipo de variable por identifier. `VariableInput` component con `<datalist>` para autocompletado.
 - **Colores de statements**: los colores se definen por grupo en `src/lib/blocks/statements/records/groups.ts` via `blockColor`. `StmtBlock` resuelve `blockColorMap[group.blockColor]` para bg/text/border.
 - **Colores de expresiones**: `typeStyles(type: PrimaryType)` en `src/lib/type-styles.ts` (`bg`, `text`, `border`, `ring`). `ExprBlock` deriva colores directamente de `expr.type`.
 - **Theme system** (`src/lib/theme.ts`): `blockColorMap` y `sectionColorMap` con strings literales completas (p.ej. `bg-sky-200 text-sky-900 border-sky-400`). Tailwind las detecta en build porque son literales en el source.
-- **VariableExpr.edit(identifier, type)**: segundo parámetro `type` es obligatorio para actualizar `expr.type`.
+- **VariableExpr**: `changeIdentifier(identifier)` actualiza `identifier`. `changeType(type)` actualiza `type` (usado cuando se resuelve el tipo de la variable).
 - **AssignExpr.copy()**: preserva `expr.type`.
-- **UI components**: `Button` (`src/components/ui/button.tsx`) con props `size` (`xs`/`sm`/`md`), `shape`, `variant`, `icon` (componente `@tabler/icons-react`). `Input` (`src/components/blocks/ui/input.tsx`) con estilos base. `Confirm` (`src/components/ui/confirm.tsx`) diálogo modal con `title`, `description`, `onAccept`, `onCancel`, `open`.
+- **UI components**: `Button` (`src/components/ui/button.tsx`) con props `size` (`xs`/`sm`/`md`), `shape`, `variant`, `icon` (componente `@tabler/icons-react`). `ResizeInput` (`src/components/blocks/ui/resize-input.tsx`) input que autoajusta ancho. `VariableInput` con `datalist`. `ExprContainerComp` drop target para expresiones.
 - **No hay tests** configurados.
 - **Iconos**: `@tabler/icons-react`. `GroupConfig` incluye `icon` de tipo `ComponentType`.
 - **Font**: Cascadia Code via Google Fonts (preconnect en index.html).
 - **Animaciones**: `tailwind-animations` (`^1.0.1`) disponible vía `animate-fade-in`, `animate-duration-normal`, etc. Importado en `src/index.css`.
 - **Formato valores**: `null` → `'nulo'`, `boolean` → `'verdadero'/'falso'`, resto → `String(value)`.
-- **IDs**: `crypto.randomUUID()` en constructor de `Stmt`, preservado en `copy()`.
-- **Serializer** (`src/lib/serializer.ts`): `serialize(node)` recorre `Object.keys` y aplane recursivamente Stmt/Expr a JSON. `deserialize(data)` usa `statementsClasses`/`expressionsClasses` para reconstruir el árbol. Soporta todos los tipos de Stmt/Expr automáticamente.
-- **Persistence**: `GlobalStmtProvider` auto-guarda en `localStorage` (`blockscript-save`) cada 5 segundos con debounce. `OutputProvider` guarda también al ejecutar (`run()`). Estado inicial se carga desde `localStorage`. `usePersistence(stmt)` provee `exportToFile()` que descarga `blockscript-YYYY-MM-DD.bs`.
+- **IDs**: `crypto.randomUUID()` en constructor de `Stmt`/`Expr`, preservado en `copy()`.
+- **Serializer via Zod**: `static configSchema` (Zod schema) en cada clase. `static createFrom(rawConfig)` parsea y construye. `export()` serializa a objeto. `Stmt.createFrom()`/`Expr.createFrom()` delegan por `name`. Persistencia: `GlobalStmtProvider` auto-guarda en `localStorage` (`blockscript-save`) cada 5 segundos con debounce. `usePersistence(stmt)` provee `exportToFile()` que descarga `blockscript-YYYY-MM-DD.bs`.
 - **Zoom/Pan**: `react-zoom-pan-pinch` con `TransformWrapper` + `TransformComponent`. Zoom con rueda+Ctrl o botones. Botón de reset centrado.
 - **SEO**: `index.html` con `lang=es`, meta description, Open Graph, Twitter Cards, canonical. `public/robots.txt`, `public/sitemap.xml`, `public/manifest.json` (PWA).
 
@@ -72,34 +77,34 @@ pnpm preview      # vite preview
 | `NullLiteralExpr` | `null-literal` | `literal: null` | `nulo` |
 | `BinaryExpr` | `binary-expr` | `left, operator: BinaryOp, right` | `número` |
 | `BinaryCompExpr` | `binary-comp-expr` | `left, operator: BinaryCompOp, right` | `V / F` |
-| `ConcatExpr` | `concat-expr` | `left, right: Expr` | `texto` |
-| `ToStringExpr` | `to-string-expr` | `expression: Expr` | `texto` |
-| `ToNumberExpr` | `to-number-expr` | `expression: Expr` | `número` |
-| `ToBooleanExpr` | `to-boolean-expr` | `expression: Expr` | `V / F` |
+| `ConcatExpr` | `concat-expr` | `left, right: ExprContainer` | `texto` |
+| `ToStringExpr` | `to-string-expr` | `expression: ExprContainer` | `texto` |
+| `ToNumberExpr` | `to-number-expr` | `expression: ExprContainer` | `número` |
+| `ToBooleanExpr` | `to-boolean-expr` | `expression: ExprContainer` | `V / F` |
 | `LogicalExpr` | `logical-expr` | `left, operator: LogicalOp, right` | `V / F` |
 | `VariableExpr` | `variable-expr` | `identifier: string = ''` | según variable |
-| `AssignExpr` | `assign-expr` | `identifier, expression: Expr` | según expresión |
-| `ReadExpr` | `read-expr` | `prompt: Expr` | `texto` |
-| `AssignOpExpr` | `assign-op-expr` | `identifier, operator: AssignOp, expression: Expr` | `número` |
+| `AssignExpr` | `assign-expr` | `identifier, expression: ExprContainer` | según expresión |
+| `ReadExpr` | `read-expr` | `prompt: ExprContainer` | `texto` |
+| `AssignOpExpr` | `assign-op-expr` | `identifier, operator: AssignOp, expression: ExprContainer` | `número` |
 | `IncrementExpr` | `increment-expr` | `identifier: string, operator: IncrementOp` | `número` |
 
-**BinaryOp**: `Add='+' Sub='-' Mul='*' Div='/' Mod='%'` **BinaryCompOp**: `Gt='>' Lt='<' Gte='>=' Lte='<=' Eq='==' Neq='!='` **LogicalOp**: `And='Y' Or='O'` **AssignOp**: `AddAssign='+=' SubAssign='-=' MulAssign='*=' DivAssign='/='` **IncrementOp**: `Increment='++' Decrement='--'`
+**BinaryOp**: `Add='+' Sub='-' Mul='*' Div='/' Mod='%'` **BinaryCompOp**: `Gt='>' Lt='<' Gte='>=' Lte='<=' Eq='==' Neq='!='` **LogicalOp**: `And='Y' Or='O'` **AssignOp**: `AddAssign='+=' SubAssign='-=' MulAssign='*=' DivAssign='/=' ModAssign='%='` **IncrementOp**: `Increment='++' Decrement='--'`
 
 ## Statements (11)
 
 | Clase | name | Props |
 |---|---|---|
 | `BlockStmt` | `block-stmt` | `children: Stmt[]` |
-| `ExprStmt` | `expr-stmt` | `expression: Expr` |
-| `PrintStmt` | `print-stmt` | `expression: Expr` |
-| `VariableStmt` | `variable-stmt` | `identifier, expression: Expr` |
-| `IfStmt` | `if-stmt` | `condition: Expr, thenBody: BlockStmt` |
-| `ElseIfStmt` | `else-if-stmt` | `condition: Expr, body: BlockStmt` |
+| `ExprStmt` | `expr-stmt` | `expression: ExprContainer` |
+| `PrintStmt` | `print-stmt` | `expression: ExprContainer` |
+| `VariableStmt` | `variable-stmt` | `identifier, expression: ExprContainer` |
+| `IfStmt` | `if-stmt` | `condition: ExprContainer, thenBody: BlockStmt` |
+| `ElseIfStmt` | `else-if-stmt` | `condition: ExprContainer, body: BlockStmt` |
 | `ElseStmt` | `else-stmt` | `body: BlockStmt` |
-| `WhileStmt` | `while-stmt` | `condition: Expr, body: BlockStmt` |
-| `DoWhileStmt` | `do-while-stmt` | `condition: Expr, body: BlockStmt` |
-| `ForStmt` | `for-stmt` | `identifier, start, end, step: Expr, body: BlockStmt` |
-| `WaitStmt` | `wait-stmt` | `duration: Expr` |
+| `WhileStmt` | `while-stmt` | `condition: ExprContainer, body: BlockStmt` |
+| `DoWhileStmt` | `do-while-stmt` | `condition: ExprContainer, body: BlockStmt` |
+| `ForStmt` | `for-stmt` | `identifier, start, end, step: ExprContainer, body: BlockStmt` |
+| `WaitStmt` | `wait-stmt` | `duration: ExprContainer` |
 
 `Stmt` (abstract base) no se usa directamente, pero existe en enum.
 
@@ -130,7 +135,7 @@ Los colores de expresiones se derivan exclusivamente de `PrimaryType` vía `type
 
 | PrimaryType | Bg | Text | Ring | Expresiones que lo usan |
 |---|---|---|---|---|
-| `número` | `bg-red-200` | `text-red-800` | `ring-red-300` | NumberLiteral, Binary, ToNumber |
+| `número` | `bg-red-200` | `text-red-800` | `ring-red-300` | NumberLiteral, Binary, ToNumber, AssignOp, Increment |
 | `texto` | `bg-lime-200` | `text-lime-800` | `ring-lime-400` | StringLiteral, Concat, ToString, Read |
 | `V / F` | `bg-purple-200` | `text-purple-800` | `ring-purple-300` | BooleanLiteral, BinaryComp, ToBoolean, Logical |
 | `nulo` | `bg-amber-200` | `text-amber-800` | `ring-amber-300` | NullLiteral |
@@ -148,9 +153,9 @@ Statements usan colores por grupo (definidos en `groups.ts` via `blockColor`):
 | WhileStmt/DoWhileStmt/ForStmt | Bucles | `bg-amber-200` | `border-amber-400` |
 | WaitStmt | Tiempo | `bg-yellow-200` | `border-yellow-400` |
 
-## Grupos de sidebar (section-styles)
+## Grupos de menú (section-styles)
 
-Los colores de sidebar se derivan de `sectionColorMap` en `src/lib/theme.ts`. Cada grupo define su `sectionColor`:
+Los colores de menú se derivan de `sectionColorMap` en `src/lib/theme.ts`. Cada grupo define su `sectionColor`:
 
 | Grupo | key | sectionColor |
 |---|---|---|
@@ -167,11 +172,11 @@ Los colores de sidebar se derivan de `sectionColorMap` en `src/lib/theme.ts`. Ca
 ## Agregar expresión
 
 1. `expressions/enum.ts` → agregar al enum
-2. `expressions/classes/<grupo>/<name>.ts` → clase con `edit()`, `copy()`, `migrateFrom()`, `type`
+2. `expressions/classes/<grupo>/<name>.ts` → clase con `static default`, `static configSchema`, `static createFrom`, `copy()`, `export()`, `edit()`, `type`
 3. `expressions/classes/index.ts` → export
 4. `expressions/records/classes.ts`, `labels.ts`, `groups.ts`
 5. `components/blocks/expressions/<grupo>/<name>.tsx` → componente
 6. `components/blocks/expressions/expr.tsx` → dispatch `instanceof`
-7. `validator/validator.ts` → `collectExprErrors` + validate type
-8. `interpreter.ts` → `evaluate()`
-9. `expressions/records/groups.ts` → grupo para sidebar
+7. `components/blocks/ui/skeletons/expr-skeleton.tsx` → dispatch `instanceof`
+8. `validator/validator.ts` → `collectExprErrors` + validate type
+9. `interpreter.ts` → `evaluate()`
