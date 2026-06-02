@@ -10,7 +10,7 @@ export function usePersistence(
 ) {
   const exportToFile = () => {
     const data = exportSavedFile(stmt, stmtDrags, exprDrags)
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
