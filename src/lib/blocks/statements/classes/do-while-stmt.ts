@@ -1,20 +1,30 @@
-import type { Expr } from '../../expressions'
-import { BooleanLiteralExpr } from '../../expressions/classes'
+import z from 'zod'
+import { ErrorType } from '../../../errors'
+import { PrimaryType } from '../../../types'
+import { Expr } from '../../expressions'
+import { ExprContainer } from '../../shared/classes/expr-container'
 import { Stmt } from '../classes/stmt'
 import { Statements } from '../enum'
 import { BlockStmt } from './block-stmt'
-import { WhileStmt } from './while-stmt'
 
 export class DoWhileStmt extends Stmt {
+  static default = new DoWhileStmt()
   name = Statements.DoWhile
 
-  body: BlockStmt = new BlockStmt()
-  condition: Expr = new BooleanLiteralExpr()
+  condition = new ExprContainer(
+    this,
+    (expr) => {
+      if (expr.type !== PrimaryType.boolean)
+        return {
+          type: ErrorType.Type,
+          message: `La condición debe ser V / F, recibió ${expr.type}`,
+        }
 
-  edit(body: BlockStmt, condition: Expr) {
-    this.body = body
-    this.condition = condition
-  }
+      return null
+    },
+    'No se ha establecido una condición',
+  )
+  body: BlockStmt = new BlockStmt()
 
   copy(): DoWhileStmt {
     const stmt = new DoWhileStmt(this.id)
@@ -22,19 +32,25 @@ export class DoWhileStmt extends Stmt {
     stmt.condition = this.condition.copy()
     return stmt
   }
-
-  migrateFrom(source: Stmt) {
-    if (source instanceof DoWhileStmt) {
-      this.body = source.body.copy() as BlockStmt
-      this.condition = source.condition.copy()
-    } else if (source instanceof WhileStmt) {
-      this.body = source.body.copy() as BlockStmt
-      this.condition = source.condition.copy()
-    } else if (source instanceof BlockStmt) {
-      this.body = source.copy() as BlockStmt
-    } else {
-      this.body = new BlockStmt()
-      this.condition = new BooleanLiteralExpr()
+  static configSchema = Stmt.configSchema.extend({
+    condition: z.unknown(),
+    body: z.unknown(),
+  })
+  static createFrom(rawConfig: unknown): DoWhileStmt | null {
+    const { data } = this.configSchema.safeParse(rawConfig)
+    if (data == null) return null
+    const doWhileStmt = new DoWhileStmt(data.id)
+    doWhileStmt.condition._expr = Expr.createFrom(data.condition)
+    const body = BlockStmt.createFrom(data.body)
+    if (body == null) return null
+    doWhileStmt.body = body
+    return doWhileStmt
+  }
+  export(): z.infer<typeof DoWhileStmt.configSchema> {
+    return {
+      ...super.export(),
+      condition: this.condition._expr?.export() ?? null,
+      body: this.body.export(),
     }
   }
 }

@@ -1,30 +1,51 @@
+import z from 'zod'
 import { PrimaryType } from '../../../../types'
+import { ExprContainer } from '../../../shared/classes/expr-container'
 import { Expressions } from '../../enum'
 import { Expr } from '../expr'
-import { NullLiteralExpr } from '../valores/null-literal'
 
 export class AssignExpr extends Expr {
+  static default = new AssignExpr()
   name = Expressions.Assign
 
   identifier = ''
-  expression: Expr = new NullLiteralExpr()
+  expression = new ExprContainer(
+    this,
+    () => null,
+    'No se ha establecido un valor a la asignación',
+  )
   type = PrimaryType.null
 
-  edit(identifier: string, expression: Expr) {
+  changeIdentifier(identifier: string) {
     this.identifier = identifier
-    this.expression = expression
-    this.type = expression.type
   }
   copy(): AssignExpr {
-    const expr = new AssignExpr()
+    const expr = new AssignExpr(this.id)
     expr.identifier = this.identifier
     expr.expression = this.expression.copy()
     expr.type = this.type
     return expr
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  migrateFrom(_source: Expr) {
-    this.identifier = ''
-    this.expression = new NullLiteralExpr()
+  static configSchema = Expr.configSchema.extend({
+    identifier: z.string(),
+    expression: z.unknown(),
+    type: z.nativeEnum(PrimaryType),
+  })
+  static createFrom(rawConfig: unknown): AssignExpr | null {
+    const { data } = this.configSchema.safeParse(rawConfig)
+    if (data == null) return null
+    const expr = new AssignExpr(data.id)
+    expr.identifier = data.identifier
+    expr.expression._expr = Expr.createFrom(data.expression)
+    expr.type = data.type
+    return expr
+  }
+  export(): z.infer<typeof AssignExpr.configSchema> {
+    return {
+      ...super.export(),
+      identifier: this.identifier,
+      expression: this.expression._expr?.export() ?? null,
+      type: this.type,
+    }
   }
 }

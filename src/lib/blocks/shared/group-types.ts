@@ -1,5 +1,5 @@
-import type { ComponentType } from 'react'
 import type { BlockThemeColor, SectionThemeColor } from '../../theme'
+import type { IconProps } from '@tabler/icons-react'
 
 export interface ItemStyle {
   bg: string
@@ -12,7 +12,6 @@ export interface SectionStyle {
   text: string
   border: string
   ring: string
-  header: string
 }
 
 export interface GroupConfig<TItem extends string> {
@@ -20,5 +19,5 @@ export interface GroupConfig<TItem extends string> {
   items: TItem[]
   blockColor: BlockThemeColor
   sectionColor: SectionThemeColor
-  icon: ComponentType<{ className?: string }>
+  icon: (props: IconProps) => React.ReactNode
 }

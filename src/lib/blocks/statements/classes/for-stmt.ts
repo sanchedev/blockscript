@@ -1,26 +1,61 @@
-import type { Expr } from '../../expressions'
-import { NumberLiteralExpr } from '../../expressions/classes'
+import z from 'zod'
+import { ErrorType } from '../../../errors'
+import { PrimaryType } from '../../../types'
+import { Expr } from '../../expressions'
+import { ExprContainer } from '../../shared/classes/expr-container'
 import { Stmt } from '../classes/stmt'
 import { Statements } from '../enum'
 import { BlockStmt } from './block-stmt'
-import { WhileStmt } from './while-stmt'
 
 export class ForStmt extends Stmt {
+  static default = new ForStmt()
   name = Statements.For
 
   identifier = ''
-  start: Expr = new NumberLiteralExpr()
-  end: Expr = new NumberLiteralExpr()
-  step: Expr = Object.assign(new NumberLiteralExpr(), { literal: 1 })
+  start = new ExprContainer(
+    this,
+    (expr) => {
+      if (expr.type !== PrimaryType.number)
+        return {
+          type: ErrorType.Type,
+          message: `El valor inicial debe ser número, recibió ${expr.type}`,
+        }
+
+      return null
+    },
+    `No se ha establecido un valor inicial`,
+  )
+  end = new ExprContainer(
+    this,
+    (expr) => {
+      if (expr.type !== PrimaryType.number)
+        return {
+          type: ErrorType.Type,
+          message: `El valor final debe ser número, recibió ${expr.type}`,
+        }
+
+      return null
+    },
+    `No se ha establecido un valor final`,
+  )
+  step = new ExprContainer(
+    this,
+    (expr) => {
+      if (expr.type !== PrimaryType.number)
+        return {
+          type: ErrorType.Type,
+          message: `El paso debe ser número, recibió ${expr.type}`,
+        }
+
+      return null
+    },
+    `No se ha establecido un paso`,
+  )
   body: BlockStmt = new BlockStmt()
 
-  edit(identifier: string, start: Expr, end: Expr, step: Expr) {
+  changeIdentifier(identifier: string) {
     this.identifier = identifier
-    this.start = start
-    this.end = end
-    this.step = step
   }
-
   copy(): ForStmt {
     const stmt = new ForStmt(this.id)
     stmt.identifier = this.identifier
@@ -30,24 +65,34 @@ export class ForStmt extends Stmt {
     stmt.body = this.body.copy() as BlockStmt
     return stmt
   }
-
-  migrateFrom(source: Stmt) {
-    if (source instanceof ForStmt) {
-      this.identifier = source.identifier
-      this.start = source.start.copy()
-      this.end = source.end.copy()
-      this.step = source.step.copy()
-      this.body = source.body.copy() as BlockStmt
-    } else if (source instanceof WhileStmt) {
-      this.body = source.body.copy() as BlockStmt
-    } else if (source instanceof BlockStmt) {
-      this.body = source.copy() as BlockStmt
-    } else {
-      this.identifier = ''
-      this.start = new NumberLiteralExpr()
-      this.end = new NumberLiteralExpr()
-      this.step = new NumberLiteralExpr()
-      this.body = new BlockStmt()
+  static configSchema = Stmt.configSchema.extend({
+    identifier: z.string(),
+    start: z.unknown(),
+    end: z.unknown(),
+    step: z.unknown(),
+    body: z.unknown(),
+  })
+  static createFrom(rawConfig: unknown): ForStmt | null {
+    const { data } = this.configSchema.safeParse(rawConfig)
+    if (data == null) return null
+    const forStmt = new ForStmt(data.id)
+    forStmt.identifier = data.identifier
+    forStmt.start._expr = Expr.createFrom(data.start)
+    forStmt.end._expr = Expr.createFrom(data.end)
+    forStmt.step._expr = Expr.createFrom(data.step)
+    const body = BlockStmt.createFrom(data.body)
+    if (body == null) return null
+    forStmt.body = body
+    return forStmt
+  }
+  export(): z.infer<typeof ForStmt.configSchema> {
+    return {
+      ...super.export(),
+      identifier: this.identifier,
+      start: this.start._expr?.export() ?? null,
+      end: this.end._expr?.export() ?? null,
+      step: this.step._expr?.export() ?? null,
+      body: this.body.export(),
     }
   }
 }

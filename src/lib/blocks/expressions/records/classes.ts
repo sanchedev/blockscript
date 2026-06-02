@@ -1,4 +1,21 @@
-import { AssignExpr, AssignOpExpr, BinaryCompExpr, BinaryExpr, BooleanLiteralExpr, IncrementExpr, NullLiteralExpr, NumberLiteralExpr, StringLiteralExpr, VariableExpr, ReadExpr, ConcatExpr, ToStringExpr, ToNumberExpr, ToBooleanExpr, LogicalExpr } from '../classes'
+import {
+  AssignExpr,
+  AssignOpExpr,
+  BinaryCompExpr,
+  BinaryExpr,
+  BooleanLiteralExpr,
+  IncrementExpr,
+  NullLiteralExpr,
+  NumberLiteralExpr,
+  StringLiteralExpr,
+  VariableExpr,
+  ReadExpr,
+  ConcatExpr,
+  ToStringExpr,
+  ToNumberExpr,
+  ToBooleanExpr,
+  LogicalExpr,
+} from '../classes'
 import { Expressions } from '../enum'
 
 export const expressionsClasses = {

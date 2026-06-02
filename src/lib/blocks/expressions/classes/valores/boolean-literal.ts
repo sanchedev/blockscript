@@ -1,10 +1,10 @@
+import z from 'zod'
 import { Expressions } from '../../enum'
-import { NumberLiteralExpr } from '../valores/number-literal'
-import { StringLiteralExpr } from '../valores/string-literal'
 import { Expr } from '../expr'
 import { PrimaryType } from '../../../../types'
 
 export class BooleanLiteralExpr extends Expr {
+  static default = new BooleanLiteralExpr()
   name = Expressions.BooleanLiteral
 
   literal = false
@@ -15,19 +15,24 @@ export class BooleanLiteralExpr extends Expr {
     this.literal = literal
   }
   copy(): BooleanLiteralExpr {
-    const expr = new BooleanLiteralExpr()
+    const expr = new BooleanLiteralExpr(this.id)
     expr.literal = this.literal
     return expr
   }
-  migrateFrom(source: Expr) {
-    if (source instanceof StringLiteralExpr) {
-      this.literal = source.literal === 'true'
-    } else if (source instanceof NumberLiteralExpr) {
-      this.literal = source.literal !== 0
-    } else if (source instanceof BooleanLiteralExpr) {
-      this.literal = source.literal
-    } else {
-      this.literal = false
+  static configSchema = Expr.configSchema.extend({
+    literal: z.boolean(),
+  })
+  static createFrom(rawConfig: unknown): BooleanLiteralExpr | null {
+    const { data } = this.configSchema.safeParse(rawConfig)
+    if (data == null) return null
+    const expr = new BooleanLiteralExpr(data.id)
+    expr.literal = data.literal
+    return expr
+  }
+  export(): z.infer<typeof BooleanLiteralExpr.configSchema> {
+    return {
+      ...super.export(),
+      literal: this.literal,
     }
   }
 }

@@ -1,4 +1,5 @@
 export enum Expressions {
+  Expression = 'expr',
   StringLiteral = 'string-expr',
   NullLiteral = 'null-literal',
   NumberLiteral = 'number-expr',

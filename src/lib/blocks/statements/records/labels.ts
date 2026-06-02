@@ -1,7 +1,7 @@
 import type { Statements } from '../enum'
 
 export const statementsLabels: Record<Statements, string> = {
-  stmt: 'Bloque sin utilidad',
+  stmt: 'Declaración',
   'expr-stmt': 'Evaluar expresión',
   'print-stmt': 'Mostrar en consola',
   'variable-stmt': 'Declarar variable',

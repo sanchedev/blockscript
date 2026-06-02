@@ -1,8 +1,7 @@
+import z from 'zod'
 import { PrimaryType } from '../../../../types'
 import { Expressions } from '../../enum'
 import { Expr } from '../expr'
-import { AssignExpr } from '../variables/assign'
-import { VariableExpr } from '../variables/variable'
 
 export enum IncrementOp {
   Increment = '++',
@@ -10,36 +9,44 @@ export enum IncrementOp {
 }
 
 export class IncrementExpr extends Expr {
+  static default = new IncrementExpr()
   name = Expressions.Increment
 
   identifier = ''
   operator: IncrementOp = IncrementOp.Increment
   type = PrimaryType.number
 
-  edit(identifier: string, operator: IncrementOp) {
+  changeIdentifier(identifier: string) {
     this.identifier = identifier
+  }
+  changeOperator(operator: IncrementOp) {
     this.operator = operator
   }
 
   copy(): IncrementExpr {
-    const expr = new IncrementExpr()
+    const expr = new IncrementExpr(this.id)
     expr.identifier = this.identifier
     expr.operator = this.operator
     expr.type = this.type
     return expr
   }
-
-  migrateFrom(source: Expr) {
-    if (source instanceof IncrementExpr) {
-      this.identifier = source.identifier
-      this.operator = source.operator
-    } else if (source instanceof AssignExpr) {
-      this.identifier = source.identifier
-    } else if (source instanceof VariableExpr) {
-      this.identifier = source.identifier
-    } else {
-      this.identifier = ''
-      this.operator = IncrementOp.Increment
+  static configSchema = Expr.configSchema.extend({
+    identifier: z.string(),
+    operator: z.nativeEnum(IncrementOp),
+  })
+  static createFrom(rawConfig: unknown): IncrementExpr | null {
+    const { data } = this.configSchema.safeParse(rawConfig)
+    if (data == null) return null
+    const expr = new IncrementExpr(data.id)
+    expr.identifier = data.identifier
+    expr.operator = data.operator
+    return expr
+  }
+  export(): z.infer<typeof IncrementExpr.configSchema> {
+    return {
+      ...super.export(),
+      identifier: this.identifier,
+      operator: this.operator,
     }
   }
 }

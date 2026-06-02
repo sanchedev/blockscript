@@ -1,6 +1,7 @@
 import type { Expressions } from '../enum'
 
 export const expressionsLabels: Record<Expressions, string> = {
+  expr: 'Expresión',
   'string-expr': 'Texto',
   'null-literal': 'Nulo',
   'number-expr': 'Número',

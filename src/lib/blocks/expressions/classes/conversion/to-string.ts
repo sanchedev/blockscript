@@ -1,35 +1,40 @@
+import z from 'zod'
 import { Expressions } from '../../enum'
 import { Expr } from '../expr'
-import { ReadExpr } from '../valores/read'
-import { StringLiteralExpr } from '../valores/string-literal'
 import { PrimaryType } from '../../../../types'
+import { ExprContainer } from '../../../shared/classes/expr-container'
 
 export class ToStringExpr extends Expr {
+  static default = new ToStringExpr()
   name = Expressions.ToString
 
-  expression: Expr = new StringLiteralExpr()
+  expression = new ExprContainer(
+    this,
+    () => null,
+    'No se ha establecido un dato para la conversión',
+  )
 
   type = PrimaryType.string
 
-  edit(expression: Expr) {
-    this.expression = expression
-  }
-
   copy(): ToStringExpr {
-    const expr = new ToStringExpr()
+    const expr = new ToStringExpr(this.id)
     expr.expression = this.expression.copy()
     return expr
   }
-
-  migrateFrom(source: Expr) {
-    if (source instanceof StringLiteralExpr) {
-      this.expression = source.copy()
-    } else if (source instanceof ToStringExpr) {
-      this.expression = source.expression.copy()
-    } else if (source instanceof ReadExpr) {
-      this.expression = source.prompt.copy()
-    } else {
-      this.expression = new StringLiteralExpr()
+  static configSchema = Expr.configSchema.extend({
+    expression: z.unknown(),
+  })
+  static createFrom(rawConfig: unknown): ToStringExpr | null {
+    const { data } = this.configSchema.safeParse(rawConfig)
+    if (data == null) return null
+    const expr = new ToStringExpr(data.id)
+    expr.expression._expr = Expr.createFrom(data.expression)
+    return expr
+  }
+  export(): z.infer<typeof ToStringExpr.configSchema> {
+    return {
+      ...super.export(),
+      expression: this.expression._expr?.export() ?? null,
     }
   }
 }

@@ -1,18 +1,31 @@
+import z from 'zod'
+import { Expressions } from '../../enum'
 import { Expr } from '../expr'
 
 export class NullLiteralExpr extends Expr {
-  name = 'null-literal'
+  static default = new NullLiteralExpr()
+  name = Expressions.NullLiteral
 
   literal = null
 
   edit() {}
 
   copy(): NullLiteralExpr {
-    const expr = new NullLiteralExpr()
+    const expr = new NullLiteralExpr(this.id)
     return expr
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  migrateFrom(_source: Expr) {
-    this.literal = null
+  static configSchema = Expr.configSchema.extend({
+    literal: z.null(),
+  })
+  static createFrom(rawConfig: unknown): NullLiteralExpr | null {
+    const { data } = this.configSchema.safeParse(rawConfig)
+    if (data == null) return null
+    return new NullLiteralExpr(data.id)
+  }
+  export(): z.infer<typeof NullLiteralExpr.configSchema> {
+    return {
+      ...super.export(),
+      literal: this.literal,
+    }
   }
 }

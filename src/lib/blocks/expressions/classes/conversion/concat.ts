@@ -1,41 +1,66 @@
+import z from 'zod'
 import { Expressions } from '../../enum'
 import { Expr } from '../expr'
-import { BinaryCompExpr } from '../operaciones/binary-comp'
-import { BinaryExpr } from '../operaciones/binary'
-import { StringLiteralExpr } from '../valores/string-literal'
 import { PrimaryType } from '../../../../types'
+import { ExprContainer } from '../../../shared/classes/expr-container'
+import { ErrorType } from '../../../../errors'
 
 export class ConcatExpr extends Expr {
+  static default = new ConcatExpr()
   name = Expressions.Concat
 
-  left: Expr = new StringLiteralExpr()
-  right: Expr = new StringLiteralExpr()
+  left = new ExprContainer(
+    this,
+    (expr) => {
+      if (expr.type !== PrimaryType.string)
+        return {
+          type: ErrorType.Type,
+          message: `La concatenación requiere texto en ambos lados, recibió ${expr.type} a la izquierda`,
+        }
+
+      return null
+    },
+    'No se ha establecido un texto a la izquierda',
+  )
+  right = new ExprContainer(
+    this,
+    (expr) => {
+      if (expr.type !== PrimaryType.string)
+        return {
+          type: ErrorType.Type,
+          message: `La concatenación requiere texto en ambos lados, recibió ${expr.type} a la derecha`,
+        }
+
+      return null
+    },
+    'No se ha establecido un texto a la derecha',
+  )
 
   type = PrimaryType.string
 
-  edit(left: Expr, right: Expr) {
-    this.left = left
-    this.right = right
-  }
-
   copy(): ConcatExpr {
-    const expr = new ConcatExpr()
+    const expr = new ConcatExpr(this.id)
     expr.left = this.left.copy()
     expr.right = this.right.copy()
     return expr
   }
-
-  migrateFrom(source: Expr) {
-    if (source instanceof StringLiteralExpr) {
-      this.left = source.copy()
-    } else if (source instanceof ConcatExpr) {
-      this.left = source.left.copy()
-      this.right = source.right.copy()
-    } else if (source instanceof BinaryExpr || source instanceof BinaryCompExpr) {
-      this.left = source.left.copy()
-      this.right = source.right.copy()
-    } else {
-      this.left = new StringLiteralExpr()
+  static configSchema = Expr.configSchema.extend({
+    left: z.unknown(),
+    right: z.unknown(),
+  })
+  static createFrom(rawConfig: unknown): ConcatExpr | null {
+    const { data } = this.configSchema.safeParse(rawConfig)
+    if (data == null) return null
+    const expr = new ConcatExpr(data.id)
+    expr.left._expr = Expr.createFrom(data.left)
+    expr.right._expr = Expr.createFrom(data.right)
+    return expr
+  }
+  export(): z.infer<typeof ConcatExpr.configSchema> {
+    return {
+      ...super.export(),
+      left: this.left._expr?.export() ?? null,
+      right: this.right._expr?.export() ?? null,
     }
   }
 }
