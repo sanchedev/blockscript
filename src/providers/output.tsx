@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { OutputCtx } from '../contexts/output'
-import { useGlobalStmt } from '../hooks/global-stmt'
 import { Interpreter, type InterpretResult } from '../lib/interpreter'
 import type { EvalError } from '../lib/errors'
-import { serialize } from '../lib/serializer'
 import { useConsoleStore } from '../stores/console-store'
+import { useRootStmt } from '../stores/root-stmt'
 
 export function OutputProvider(props: React.PropsWithChildren) {
-  const { stmt } = useGlobalStmt()
+  const stmt = useRootStmt((state) => state.stmt)
 
   const [result, setResult] = useState<InterpretResult | null>(null)
   const [isRunning, setIsRunning] = useState(false)
@@ -17,7 +16,6 @@ export function OutputProvider(props: React.PropsWithChildren) {
     if (isRunning) return
 
     useConsoleStore.getState().openConsole()
-    localStorage.setItem('blockscript-save', JSON.stringify(serialize(stmt)))
 
     setTime(null)
     setIsRunning(true)

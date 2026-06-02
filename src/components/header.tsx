@@ -7,16 +7,23 @@ import {
 import { Button } from './ui/button'
 import { Confirm } from './ui/confirm'
 import { useRef, useState } from 'react'
-import { useGlobalStmt } from '../hooks/global-stmt'
 import { useOutput } from '../hooks/output'
 import { usePersistence } from '../hooks/persistence'
-import { BlockStmt } from '../lib/blocks/statements/classes'
-import { deserialize } from '../lib/serializer'
+import { loadSavedFile } from '../lib/serializer/saved-file'
+import { useMenu } from '../stores/menu-store'
+import { useRootStmt } from '../stores/root-stmt'
+import { useStmtDrag } from '../stores/stmt-drags'
+import { useExprDrag } from '../stores/expr-drags'
+import { BlockStmt } from '../lib/blocks/statements/classes/block-stmt'
 
 export function Header() {
   const { run, isRunning } = useOutput()
-  const { stmt, replaceStmt } = useGlobalStmt()
-  const { exportToFile } = usePersistence(stmt)
+  const toggle = useMenu((state) => state.toggle)
+  const stmt = useRootStmt((state) => state.stmt)
+  const setStmt = useRootStmt((state) => state.setStmt)
+  const stmtDrags = useStmtDrag((state) => state.positions)
+  const exprDrags = useExprDrag((state) => state.positions)
+  const { exportToFile } = usePersistence(stmt, stmtDrags, exprDrags)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
 
@@ -26,9 +33,11 @@ export function Header() {
     const reader = new FileReader()
     reader.onload = () => {
       try {
-        const node = deserialize(JSON.parse(reader.result as string))
-        if (node instanceof BlockStmt) {
-          replaceStmt(node)
+        const saved = loadSavedFile(JSON.parse(reader.result as string))
+        if (saved.root) {
+          setStmt(saved.root)
+          useStmtDrag.setState({ positions: saved.scatteredStmts.map(({ stmt, x, y }) => ({ stmt, x, y })) })
+          useExprDrag.setState({ positions: saved.scatteredExprs.map(({ expr, x, y }) => ({ expr, x, y })) })
         }
       } catch {
         alert('El archivo no es válido.')
@@ -40,36 +49,21 @@ export function Header() {
 
   const handleNew = () => {
     localStorage.removeItem('blockscript-save')
-    replaceStmt(new BlockStmt())
+    setStmt(new BlockStmt())
+    useStmtDrag.setState({ positions: [] })
+    useExprDrag.setState({ positions: [] })
     setConfirmOpen(false)
   }
 
   return (
-    <header className='fixed z-20 top-0 inset-x-0 pr-4 h-16 flex justify-between items-center bg-linear-180 from-20% from-slate-100 to-slate-100/60 backdrop-blur-sm border-b-2 border-slate-200 shadow'>
+    <header className='w-full pr-4 h-16 flex justify-between items-center bg-linear-180 from-20% from-slate-100 to-slate-100/60 backdrop-blur-sm border-b-2 border-slate-200 shadow'>
       <div className='h-full select-none w-56 bg-linear-90 from-emerald-100/70 to-transparent pl-8 py-2'>
-        <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='40'
-          height='40'
-          fill='none'
-          viewBox='0 0 40 40'
-          className='h-12'>
-          <rect rx='12' width='40' height='40' fill='#00d492' />
-
-          <rect x='2' y='0' rx='11' width='38' height='40' fill='#a4f4cf' />
-
-          <text
-            y='20'
-            x='20'
-            fontSize='16'
-            fontWeight='700'
-            fontFamily="Cascadia Code, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
-            textAnchor='middle'
-            alignmentBaseline='central'
-            fill='#004f3b'>
-            bs
-          </text>
-        </svg>
+        <button
+          className='m-1 size-10 bg-emerald-200 font-mono font-bold text-emerald-800 rounded-xl border-l-2 border-emerald-400 hover:shadow active:shadow-none active:bg-emerald-300 transition-all'
+          aria-label='Abrir el menú'
+          onClick={toggle}>
+          bs
+        </button>
       </div>
       <div className='flex gap-2'>
         <Button
