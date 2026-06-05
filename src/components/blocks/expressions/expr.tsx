@@ -38,9 +38,9 @@ import { useDrag } from '../../../stores/drag-store'
 import { use, useState } from 'react'
 import { ExprCtx } from '../../../contexts/expr'
 import { ExprContainerCtx } from '../../../contexts/expr-container'
-import { useExprDrag } from '../../../stores/expr-drags'
 import { ExprSkeleton } from '../ui/skeletons/expr-skeleton'
 import { useTransformContext } from 'react-zoom-pan-pinch'
+import { useBlockDrag } from '../../../hooks/block-drag'
 
 export function ExprComp(
   props: ExprCompProps & { position?: { x: number; y: number } },
@@ -53,7 +53,8 @@ export function ExprComp(
   const startDrag = useDrag((state) => state.startDrag)
   const data = useDrag((state) => state.data)
   const endDrag = useDrag((state) => state.endDrag)
-  const removeDrag = useExprDrag((state) => state.remove)
+
+  const { removeExpr } = useBlockDrag()
 
   const { state } = useTransformContext()
 
@@ -68,7 +69,7 @@ export function ExprComp(
       pickPosition: { x: ev.clientX - left, y: ev.clientY - top },
       unlock: () => {
         if (container) container?.set(null)
-        else removeDrag(expr.id)
+        else removeExpr(expr.id)
         triggerUpdate?.()
       },
     })

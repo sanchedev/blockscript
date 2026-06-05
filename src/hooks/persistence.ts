@@ -5,11 +5,10 @@ import type { Expr } from '../lib/blocks/expressions/classes/expr'
 
 export function usePersistence(
   stmt: BlockStmt,
-  stmtDrags: { stmt: Stmt; x: number; y: number }[],
-  exprDrags: { expr: Expr; x: number; y: number }[],
+  drags: { block: Stmt | Expr; x: number; y: number }[],
 ) {
   const exportToFile = () => {
-    const data = exportSavedFile(stmt, stmtDrags, exprDrags)
+    const data = exportSavedFile(stmt, drags)
     const blob = new Blob([JSON.stringify(data)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')

@@ -8,8 +8,6 @@ export class NullLiteralExpr extends Expr {
 
   literal = null
 
-  edit() {}
-
   copy(): NullLiteralExpr {
     const expr = new NullLiteralExpr(this.id)
     return expr

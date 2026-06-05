@@ -10,10 +10,12 @@ import {
   DoWhileStmt,
   ForStmt,
   WaitStmt,
+  Stmt,
 } from '../classes'
 import { BlockStmt } from '../classes/block-stmt'
 
 export const statementsClasses = {
+  [Statements.Stmt]: Stmt,
   [Statements.Expr]: ExprStmt,
   [Statements.Print]: PrintStmt,
   [Statements.Variable]: VariableStmt,

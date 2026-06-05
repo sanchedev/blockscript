@@ -3,11 +3,11 @@ import type { ExprContainer } from '../../../lib/blocks/shared/classes/expr-cont
 import { ExprComp } from '../expressions/expr'
 import { useDrag } from '../../../stores/drag-store'
 import clsx from 'clsx'
-import { useExprDrag } from '../../../stores/expr-drags'
 import { Expr } from '../../../lib/blocks/expressions'
 import { ExprContainerCtx } from '../../../contexts/expr-container'
 import { StmtCtx } from '../../../contexts/stmt'
 import { ExprCtx } from '../../../contexts/expr'
+import { useBlockDrag } from '../../../hooks/block-drag'
 
 interface ExprContainerCompProps {
   container: ExprContainer
@@ -16,8 +16,7 @@ interface ExprContainerCompProps {
 export function ExprContainerComp({ container }: ExprContainerCompProps) {
   const data = useDrag((state) => state.data)
   const endDrag = useDrag((state) => state.endDrag)
-  const find = useExprDrag((state) => state.find)
-  const remove = useExprDrag((state) => state.remove)
+  const { findExpr, removeExpr } = useBlockDrag()
   const [dragState, setDragState] = useState<'no' | 'ignore' | 'normal'>('no')
   const containerRef = useRef<HTMLDivElement | null>(null)
   const { triggerUpdate: updateStmt } = use(StmtCtx)
@@ -34,7 +33,7 @@ export function ExprContainerComp({ container }: ExprContainerCompProps) {
     if (!readyToDrop || data == null) return
     const expr = data.obj
     if (!(expr instanceof Expr)) return
-    if (find(expr.id) == null) return
+    if (findExpr(expr.id) == null) return
     return expr
   }
 
@@ -63,7 +62,7 @@ export function ExprContainerComp({ container }: ExprContainerCompProps) {
     const expr = getExpr()
     if (expr == null) return
     container.set(expr)
-    remove(expr.id)
+    removeExpr(expr.id)
     triggerUpdate()
   }
 

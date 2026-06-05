@@ -6,8 +6,7 @@ import { ErrorProvider } from './providers/error'
 import { OutputProvider } from './providers/output'
 import { exportSavedFile, loadSavedFile } from './lib/serializer/saved-file'
 import { useRootStmt } from './stores/root-stmt'
-import { useStmtDrag } from './stores/stmt-drags'
-import { useExprDrag } from './stores/expr-drags'
+import { useBlockDragStore } from './stores/block-drag-store'
 
 function Persist() {
   const initialized = useRef(false)
@@ -23,11 +22,8 @@ function Persist() {
         useRootStmt.getState().setStmt(saved.root)
       }
       if (saved.scatteredStmts.length > 0 || saved.scatteredExprs.length > 0) {
-        useStmtDrag.setState({
-          positions: saved.scatteredStmts.map(({ stmt, x, y }) => ({ stmt, x, y })),
-        })
-        useExprDrag.setState({
-          positions: saved.scatteredExprs.map(({ expr, x, y }) => ({ expr, x, y })),
+        useBlockDragStore.setState({
+          positions: [...saved.scatteredStmts, ...saved.scatteredExprs],
         })
       }
     } catch {
@@ -41,19 +37,16 @@ function Persist() {
       clearTimeout(timer)
       timer = setTimeout(() => {
         const root = useRootStmt.getState().stmt
-        const stmtPositions = useStmtDrag.getState().positions
-        const exprPositions = useExprDrag.getState().positions
-        const data = exportSavedFile(root, stmtPositions, exprPositions)
+        const positions = useBlockDragStore.getState().positions
+        const data = exportSavedFile(root, positions)
         localStorage.setItem('blockscript-save', JSON.stringify(data))
       }, 5000)
     }
     const unsubRoot = useRootStmt.subscribe(save)
-    const unsubStmts = useStmtDrag.subscribe(save)
-    const unsubExprs = useExprDrag.subscribe(save)
+    const unsubBlocks = useBlockDragStore.subscribe(save)
     return () => {
       unsubRoot()
-      unsubStmts()
-      unsubExprs()
+      unsubBlocks()
       clearTimeout(timer)
     }
   }, [])

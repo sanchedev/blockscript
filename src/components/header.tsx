@@ -12,18 +12,17 @@ import { usePersistence } from '../hooks/persistence'
 import { loadSavedFile } from '../lib/serializer/saved-file'
 import { useMenu } from '../stores/menu-store'
 import { useRootStmt } from '../stores/root-stmt'
-import { useStmtDrag } from '../stores/stmt-drags'
-import { useExprDrag } from '../stores/expr-drags'
 import { BlockStmt } from '../lib/blocks/statements/classes/block-stmt'
+import { useBlockDrag } from '../hooks/block-drag'
+import { useBlockDragStore } from '../stores/block-drag-store'
 
 export function Header() {
   const { run, isRunning } = useOutput()
   const toggle = useMenu((state) => state.toggle)
   const stmt = useRootStmt((state) => state.stmt)
   const setStmt = useRootStmt((state) => state.setStmt)
-  const stmtDrags = useStmtDrag((state) => state.positions)
-  const exprDrags = useExprDrag((state) => state.positions)
-  const { exportToFile } = usePersistence(stmt, stmtDrags, exprDrags)
+  const { positions } = useBlockDrag()
+  const { exportToFile } = usePersistence(stmt, positions)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
 
@@ -36,8 +35,9 @@ export function Header() {
         const saved = loadSavedFile(JSON.parse(reader.result as string))
         if (saved.root) {
           setStmt(saved.root)
-          useStmtDrag.setState({ positions: saved.scatteredStmts.map(({ stmt, x, y }) => ({ stmt, x, y })) })
-          useExprDrag.setState({ positions: saved.scatteredExprs.map(({ expr, x, y }) => ({ expr, x, y })) })
+          useBlockDragStore.setState({
+            positions: [...saved.scatteredStmts, ...saved.scatteredExprs],
+          })
         }
       } catch {
         alert('El archivo no es válido.')
@@ -50,8 +50,7 @@ export function Header() {
   const handleNew = () => {
     localStorage.removeItem('blockscript-save')
     setStmt(new BlockStmt())
-    useStmtDrag.setState({ positions: [] })
-    useExprDrag.setState({ positions: [] })
+    useBlockDragStore.setState({ positions: [] })
     setConfirmOpen(false)
   }
 

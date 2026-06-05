@@ -27,9 +27,9 @@ import { StmtCtx } from '../../../contexts/stmt'
 import { use, useState } from 'react'
 import { BlockStmtCtx } from '../../../contexts/block-stmt'
 import { editorChanged } from '../../../lib/event/events'
-import { useStmtDrag } from '../../../stores/stmt-drags'
 import { useTransformContext } from 'react-zoom-pan-pinch'
 import { StmtSkeleton } from '../ui/skeletons/stmt-skeleton'
+import { useBlockDrag } from '../../../hooks/block-drag'
 
 export function StmtComp(
   props: StmtCompProps & { position?: { x: number; y: number } },
@@ -44,7 +44,7 @@ export function StmtComp(
   const startDrag = useDrag((state) => state.startDrag)
   const data = useDrag((state) => state.data)
   const endDrag = useDrag((state) => state.endDrag)
-  const removeDrag = useStmtDrag((state) => state.remove)
+  const { removeStmt } = useBlockDrag()
 
   const { state: zoomState } = useTransformContext()
 
@@ -59,7 +59,7 @@ export function StmtComp(
       pickPosition: { x: ev.clientX - left, y: ev.clientY - top },
       unlock: () => {
         if (remove) remove()
-        else removeDrag(stmt.id)
+        else removeStmt(stmt.id)
       },
     })
     calcPosSkeleton(ev.clientX, ev.clientY)

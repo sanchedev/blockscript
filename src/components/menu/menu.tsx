@@ -7,13 +7,14 @@ import { expressionsGroups } from '../../lib/blocks/expressions/records/groups'
 import { statementsGroups } from '../../lib/blocks/statements/records/groups'
 import { expressionsLabels } from '../../lib/blocks/expressions/records/labels'
 import { statementsLabels } from '../../lib/blocks/statements/records/labels'
-import { useExprDrag } from '../../stores/expr-drags'
-import { useStmtDrag } from '../../stores/stmt-drags'
 import { expressionsClasses } from '../../lib/blocks/expressions/records/classes'
 import { useTransformContext } from 'react-zoom-pan-pinch'
 import { statementsClasses } from '../../lib/blocks/statements/records/classes'
 import { ExprSkeleton } from '../blocks/ui/skeletons/expr-skeleton'
 import { StmtSkeleton } from '../blocks/ui/skeletons/stmt-skeleton'
+import { useBlockDrag } from '../../hooks/block-drag'
+import type { Expressions } from '../../lib/blocks/expressions/enum'
+import type { Statements } from '../../lib/blocks/statements/enum'
 
 const menuSections = {
   expr: {
@@ -58,14 +59,11 @@ export function Menu() {
   const [selected, setSelected] = useState<keyof typeof menuSections>('expr')
   const isOpen = useMenu((state) => state.isOpen)
 
-  const addExpr = useExprDrag((state) => state.add)
-  const addStmt = useStmtDrag((state) => state.add)
+  const { add } = useBlockDrag()
 
   const { state } = useTransformContext()
 
-  if (!isOpen) {
-    return null
-  }
+  if (!isOpen) return null
 
   const handleSelected = ({
     section,
@@ -85,13 +83,12 @@ export function Menu() {
     const x = positionX - window.innerWidth / 2
     const y = positionY - window.innerHeight / 2
 
-    if (selected === 'expr') {
-      const ExprClass = (expressionsClasses as Record<string, new (...args: unknown[]) => import('../../lib/blocks/expressions/classes/expr').Expr>)[item.value]
-      if (ExprClass) addExpr(new ExprClass(), x, y)
-    } else {
-      const StmtClass = (statementsClasses as Record<string, new (...args: unknown[]) => import('../../lib/blocks/statements/classes/stmt').Stmt>)[item.value]
-      if (StmtClass) addStmt(new StmtClass(), x, y)
-    }
+    const block =
+      selected === 'expr'
+        ? new expressionsClasses[item.value as Expressions]()
+        : new statementsClasses[item.value as Statements]()
+
+    add(block, x, y)
   }
 
   const section = menuSections[selected]
@@ -125,8 +122,18 @@ export function Menu() {
           value: string
           onSelect: () => void
         }): ReactNode => {
-          const cls = (expressionsClasses as Record<string, typeof import('../../lib/blocks/expressions/classes/expr').Expr>)[value]
-          const clsStmt = (statementsClasses as Record<string, typeof import('../../lib/blocks/statements/classes/stmt').Stmt>)[value]
+          const cls = (
+            expressionsClasses as Record<
+              string,
+              typeof import('../../lib/blocks/expressions/classes/expr').Expr
+            >
+          )[value]
+          const clsStmt = (
+            statementsClasses as Record<
+              string,
+              typeof import('../../lib/blocks/statements/classes/stmt').Stmt
+            >
+          )[value]
           return (
             <button
               className='outline-none focus-visible:ring-2 ring-slate-400 rounded-xl'

@@ -15,10 +15,12 @@ import {
   ToNumberExpr,
   ToBooleanExpr,
   LogicalExpr,
+  Expr,
 } from '../classes'
 import { Expressions } from '../enum'
 
 export const expressionsClasses = {
+  [Expressions.Expression]: Expr,
   [Expressions.StringLiteral]: StringLiteralExpr,
   [Expressions.NullLiteral]: NullLiteralExpr,
   [Expressions.NumberLiteral]: NumberLiteralExpr,
