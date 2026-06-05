@@ -22,7 +22,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": false,
     "erasableSyntaxOnly": false,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "experimentalDecorators": false,
+    "useDefineForClassFields": true
   },
   "include": [
     "src"

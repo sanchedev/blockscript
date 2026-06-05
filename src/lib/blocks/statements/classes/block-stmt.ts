@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import z from 'zod'
 import { Statements } from '../enum'
 import { Stmt } from './stmt'
@@ -21,8 +22,9 @@ export class BlockStmt extends Stmt {
     children: z.array(z.unknown()),
   })
   static createFrom(rawConfig: unknown): BlockStmt | null {
-    const { data } = this.configSchema.safeParse(rawConfig)
-    if (data == null) return null
+    const result = this.configSchema.safeParse(rawConfig)
+    if (!result.success) return null
+    const data = result.data as any
     const blockStmt = new BlockStmt(data.id)
     for (const childConfig of data.children) {
       const child = Stmt.createFrom(childConfig)
@@ -31,7 +33,7 @@ export class BlockStmt extends Stmt {
     }
     return blockStmt
   }
-  export(): z.infer<typeof BlockStmt.configSchema> {
+  export() {
     return {
       ...super.export(),
       children: this.children.filter(Boolean).map((s) => s.export()),

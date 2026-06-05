@@ -5,14 +5,14 @@ import type { Stmt } from '../../statements'
 export class ExprContainer {
   _expr: Expr | null = null
 
-  #validator?: (expr: Expr) => ErrorInfo | null
+  _validator?: (expr: Expr) => ErrorInfo | null
 
   constructor(
     public parent: Stmt | Expr,
     validator?: (expr: Expr) => ErrorInfo | null,
     private requiredMessage?: string,
   ) {
-    this.#validator = validator
+    this._validator = validator
   }
 
   set(expr: Expr | null) {
@@ -20,6 +20,14 @@ export class ExprContainer {
   }
   get(): Expr | null {
     return this._expr
+  }
+
+  setValidator(
+    validator: ((expr: Expr) => ErrorInfo | null) | undefined,
+    requiredMessage?: string,
+  ) {
+    this._validator = validator
+    if (requiredMessage !== undefined) this.requiredMessage = requiredMessage
   }
 
   validate(): ErrorInfo | null {
@@ -34,13 +42,13 @@ export class ExprContainer {
         }
       return null
     }
-    return this.#validator?.(expr) ?? null
+    return this._validator?.(expr) ?? null
   }
 
   copy(): ExprContainer {
     const container = new ExprContainer(
       this.parent,
-      this.#validator,
+      this._validator,
       this.requiredMessage,
     )
     container._expr = this._expr?.copy() ?? null
