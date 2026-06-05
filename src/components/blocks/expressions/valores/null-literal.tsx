@@ -1,18 +1,26 @@
+import clsx from 'clsx'
 import type { NullLiteralExpr } from '../../../../lib/blocks/expressions'
-import { ExprBlock } from '../../ui/expr-block'
-import { InputD } from '../../ui/input-d'
+import { Input } from '../../ui/input'
 import type { ExprCompProps } from '../types'
+import { typeStyles } from '../../../../lib/type-styles'
 
 export function NullLiteralExprComp(props: ExprCompProps<NullLiteralExpr>) {
   return (
-    <ExprBlock {...props}>
-      <InputD
-        type='text'
+    <label
+      className={clsx(
+        'flex border-x-2 px-0.5 rounded-lg font-mono w-12 h-6 shadow',
+        typeStyles(props.expr.type).text,
+        typeStyles(props.expr.type).bg,
+        typeStyles(props.expr.type).border,
+      )}>
+      <Input
+        autoFocus={false}
+        autoComplete='off'
         value='nulo'
         disabled
         readOnly
-        className='text-center w-18 font-mono'
+        className={clsx('p-0 outline-0 text-center w-full text-sm')}
       />
-    </ExprBlock>
+    </label>
   )
 }

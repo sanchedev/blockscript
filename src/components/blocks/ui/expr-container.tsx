@@ -77,8 +77,9 @@ export function ExprContainerComp({ container }: ExprContainerCompProps) {
       <div
         ref={containerRef}
         className={clsx(
-          'expr-container border-2 border-slate-300 bg-slate-50 rounded-xl min-h-8 overflow-hidden',
-          readyToDrop && 'min-w-24 px-4 text-nowrap',
+          'expr-container rounded-lg h-6',
+          readyToDrop &&
+            'min-w-12 text-sm px-4 text-nowrap border border-slate-300 bg-slate-50',
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}

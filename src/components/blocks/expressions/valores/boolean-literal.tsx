@@ -1,10 +1,9 @@
 import type { BooleanLiteralExpr } from '../../../../lib/blocks/expressions'
-import { ExprBlock } from '../../ui/expr-block'
 import type { ExprCompProps } from '../types'
 import { use } from 'react'
 import { ExprCtx } from '../../../../contexts/expr'
-import { PrimaryType } from '../../../../lib/types'
 import { typeStyles } from '../../../../lib/type-styles'
+import clsx from 'clsx'
 
 export function BooleanLiteralExprComp(
   props: ExprCompProps<BooleanLiteralExpr>,
@@ -17,12 +16,18 @@ export function BooleanLiteralExprComp(
   }
 
   return (
-    <ExprBlock {...props}>
-      <button
-        onClick={handleChange}
-        className={`rounded-lg border-2 border-slate-200 bg-white px-3 py-1 h-8 flex items-center font-mono has-focus:ring-2 ${typeStyles(PrimaryType.boolean).ring}`}>
-        {props.expr.literal ? 'verdadero' : 'falso'}
-      </button>
-    </ExprBlock>
+    <button
+      onClick={handleChange}
+      className={clsx(
+        'border-x-2 px-0.5 rounded-lg font-mono w-12 h-6 outline-none focus-visible:ring-2 text-center active:border-l-0 shadow',
+        typeStyles(props.expr.type).text,
+        typeStyles(props.expr.type).bg,
+        typeStyles(props.expr.type).hover,
+        typeStyles(props.expr.type).border,
+        typeStyles(props.expr.type).ring,
+      )}
+      aria-label={props.expr.literal ? 'Verdadero' : 'Falso'}>
+      {props.expr.literal ? 'V' : 'F'}
+    </button>
   )
 }

@@ -1,12 +1,11 @@
 import { use, useState } from 'react'
 import type { LogicalExpr, LogicalOp } from '../../../../lib/blocks/expressions'
-import { ExprBlock } from '../../ui/expr-block'
 import type { ExprCompProps } from '../types'
 import { ExprCtx } from '../../../../contexts/expr'
-import { PrimaryType } from '../../../../lib/types'
 import { typeStyles } from '../../../../lib/type-styles'
 import { Button } from '../../../ui/button'
 import { ExprContainerComp } from '../../ui/expr-container'
+import clsx from 'clsx'
 
 const operators = ['Y', 'O'] as const
 const labels = ['Y (AND)', 'O (OR)']
@@ -23,23 +22,25 @@ export function LogicalExprComp(props: ExprCompProps<LogicalExpr>) {
   }
 
   return (
-    <ExprBlock
-      {...props}
-      className={`${typeStyles(PrimaryType.boolean).bg} ${typeStyles(PrimaryType.boolean).text}`}>
-      <div
-        className={`rounded-xl border-2 border-slate-200 bg-white p-1 flex gap-2 w-fit resize-x items-center font-mono has-focus:ring-2 ${typeStyles(PrimaryType.boolean).ring}`}>
-        <ExprContainerComp container={props.expr.left} />
-        <Button
-          className='border-indigo-300 bg-indigo-200 not-disabled:hover:bg-indigo-300 ring-indigo-600 text-indigo-800'
-          variant='free'
-          shape='square'
-          aria-label={labels[operatorIndex]}
-          title={labels[operatorIndex]}
-          onClick={handleRotateOperator}>
-          {operators[operatorIndex]}
-        </Button>
-        <ExprContainerComp container={props.expr.right} />
-      </div>
-    </ExprBlock>
+    <div
+      className={clsx(
+        'border-x-2 rounded-lg font-mono flex items-center gap-1 px-1 h-6 shadow',
+        typeStyles(props.expr.type).bg,
+        typeStyles(props.expr.type).border,
+        typeStyles(props.expr.type).text,
+      )}>
+      <ExprContainerComp container={props.expr.left} />
+      <Button
+        className='border-purple-300 bg-white not-disabled:hover:bg-slate-100 ring-purple-600 text-purple-800'
+        variant='free'
+        shape='square'
+        size='2xs'
+        aria-label={labels[operatorIndex]}
+        title={labels[operatorIndex]}
+        onClick={handleRotateOperator}>
+        {props.expr.operator}
+      </Button>
+      <ExprContainerComp container={props.expr.right} />
+    </div>
   )
 }

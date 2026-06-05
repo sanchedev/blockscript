@@ -1,7 +1,7 @@
 import type { IconProps } from '@tabler/icons-react'
 import clsx from 'clsx'
 
-export type ButtonSize = 'xs' | 'sm' | 'md'
+export type ButtonSize = '2xs' | 'xs' | 'sm' | 'md'
 export type ButtonShape = 'rectangle' | 'square' | 'circle'
 export type ButtonVariant = 'normal' | 'primary' | 'destructive' | 'free'
 
@@ -34,18 +34,23 @@ export function Button({
           'border-red-200 bg-white not-disabled:hover:bg-red-100 ring-red-300 text-red-800':
             variant === 'destructive',
         },
+        size === '2xs' &&
+          clsx('h-4 p-px text-xs border', {
+            'rounded-sm': shape !== 'circle',
+            'px-0.5': shape === 'rectangle',
+          }),
         size === 'xs' &&
-          clsx('h-6 p-0.5 border', {
+          clsx('h-6 p-0.5 text-sm border', {
             'rounded-md': shape !== 'circle',
             'px-1': shape === 'rectangle',
           }),
         size === 'sm' &&
-          clsx('h-8 p-1 border', {
+          clsx('h-8 p-1 text-sm border', {
             'rounded-lg': shape !== 'circle',
             'px-2': shape === 'rectangle',
           }),
         size === 'md' &&
-          clsx('h-10 p-1.5 border', {
+          clsx('h-10 p-1.5 text-base border', {
             'rounded-xl': shape !== 'circle',
             'px-3': shape === 'rectangle',
           }),

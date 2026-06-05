@@ -16,7 +16,7 @@ export function ResizeInput({
   return (
     <div
       className={clsx(
-        `rounded-lg border-2 border-slate-200 bg-white px-2 py-1 h-8 flex gap-0 w-24 min-w-12 resize-x items-center font-mono has-focus:ring-2 ${typeStyles(exprType).ring} overflow-hidden`,
+        `rounded-lg border-2 border-slate-200 bg-white px-2 py-1 h-8 flex gap-0 items-center font-mono has-focus:ring-2 ${typeStyles(exprType).ring} overflow-hidden`,
         containerClassName,
       )}>
       <Input
