@@ -11,8 +11,8 @@ import { ToBooleanExpr } from '../blocks/expressions/classes/conversion/to-boole
 import { VariableExpr } from '../blocks/expressions/classes/variables/variable'
 import { ReadExpr } from '../blocks/expressions/classes/valores/read'
 import { ExprStmt, type Stmt } from '../blocks/statements'
-import { PrintStmt } from '../blocks/statements/classes/print-stmt'
-import { VariableStmt } from '../blocks/statements/classes/variable-stmt'
+import { PrintStmt } from '../blocks/statements/classes/salida/print-stmt'
+import { VariableStmt } from '../blocks/statements/classes/variables/variable-stmt'
 import {
   IfStmt,
   ElseIfStmt,

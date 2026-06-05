@@ -8,6 +8,7 @@ import {
   IconRepeat,
 } from '@tabler/icons-react'
 import type { GroupConfig } from '../../shared/group-types'
+import { blockStyles } from '../../../theme'
 
 export enum StatementsGroupKey {
   Expresiones = 'expresiones',
@@ -18,7 +19,10 @@ export enum StatementsGroupKey {
   Tiempo = 'tiempo',
 }
 
-export const statementsGroups: Record<StatementsGroupKey, GroupConfig<Statements>> = {
+export const statementsGroups: Record<
+  StatementsGroupKey,
+  GroupConfig<Statements>
+> = {
   [StatementsGroupKey.Expresiones]: {
     title: 'Expresiones',
     items: [Statements.Expr],
@@ -68,6 +72,10 @@ export function getStmtGroupKey(stmt: Statements): StatementsGroupKey {
     group.items.includes(stmt),
   )
   return (entry?.[0] ?? StatementsGroupKey.Expresiones) as StatementsGroupKey
+}
+export function getStmtGroupColor(stmt: Statements) {
+  const group = statementsGroups[getStmtGroupKey(stmt)]
+  return blockStyles(group.blockColor)
 }
 
 export type { GroupConfig }

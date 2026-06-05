@@ -1,10 +1,10 @@
-import { ErrorType } from '../../../errors'
-import { PrimaryType } from '../../../types'
-import { ExprContainer } from '../../shared/classes/expr-container'
-import { Stmt } from '../classes/stmt'
-import { Statements } from '../enum'
-import { BlockStmt } from './block-stmt'
-import { field } from '../../shared/field-decorator'
+import { ErrorType } from '../../../../errors'
+import { PrimaryType } from '../../../../types'
+import { ExprContainer } from '../../../shared/classes/expr-container'
+import { Stmt } from '../stmt'
+import { Statements } from '../../enum'
+import { BlockStmt } from '../block-stmt'
+import { field } from '../../../shared/field-decorator'
 
 export class WhileStmt extends Stmt {
   static default = new WhileStmt()

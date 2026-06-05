@@ -1,8 +1,8 @@
 import z from 'zod'
-import { ExprContainer } from '../../shared/classes/expr-container'
-import { Stmt } from '../classes/stmt'
-import { Statements } from '../enum'
-import { field } from '../../shared/field-decorator'
+import { ExprContainer } from '../../../shared/classes/expr-container'
+import { Stmt } from '../stmt'
+import { Statements } from '../../enum'
+import { field } from '../../../shared/field-decorator'
 
 export class VariableStmt extends Stmt {
   static default = new VariableStmt()
