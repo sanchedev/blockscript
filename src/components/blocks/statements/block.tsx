@@ -12,13 +12,12 @@ import { useDrag } from '../../../stores/drag-store'
 import { BlockStmtCtx } from '../../../contexts/block-stmt'
 import { StmtCtx } from '../../../contexts/stmt'
 import { useRootStmt } from '../../../stores/root-stmt'
+import { getStmtGroupColor } from '../../../lib/blocks/statements/records/groups'
 
 export function BlockStmtComp(
   props: StmtCompProps<BlockStmt> & {
     parent?: Stmt
     main?: boolean
-    removeRoundedTop?: boolean
-    removeRoundedBottom?: boolean
     fit?: boolean
   },
 ) {
@@ -81,27 +80,38 @@ export function BlockStmtComp(
     ev.stopPropagation()
     setDragState('no')
     const dropped = getStmt()
-    if (dropped == null) { endDrag(); return }
-    if (isIncompatible()) { endDrag(); return }
+    if (dropped == null) {
+      endDrag()
+      return
+    }
+    if (isIncompatible()) {
+      endDrag()
+      return
+    }
     add(dropped)
     endDrag()
     data?.unlock()
     triggerUpdate()
   }
+  const { bg = 'bg-slate-100', border = 'border-slate-300' } = props.parent
+    ? getStmtGroupColor(props.parent.name)
+    : {}
 
   return (
     <div
       className={clsx(
-        'stmt-block border-l-2 border-slate-300 bg-slate-100 rounded-2xl p-10 flex flex-col gap-2 items-start shadow',
+        'stmt-block relative border-l-2 rounded-2xl flex flex-col gap-2 items-start',
         {
-          'rounded-t-none': props.removeRoundedTop,
-          'rounded-b-none': props.removeRoundedBottom,
+          'p-10 shadow bg-slate-100': props.main,
+          'p-4 pl-10 rounded-t-none rounded-b-none': !props.main,
         },
+        border,
         props.fit && 'w-fit',
       )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}>
+      <div className={clsx('absolute inset-y-0 left-0 w-9', bg)} />
       {props.stmt.children.map((stmt, i) => {
         const selfLoc = {
           index: i,
@@ -124,11 +134,17 @@ export function BlockStmtComp(
                 triggerUpdate()
               },
             }}>
-            <BlockLine key={stmt.id} error={error} index={i} stmt={stmt} />
+            <BlockLine
+              key={stmt.id}
+              error={error}
+              index={i}
+              stmt={stmt}
+              parent={props.parent}
+            />
           </BlockStmtCtx>
         )
       })}
-      <BlockLine index={props.stmt.children.length} />
+      {props.main && <BlockLine index={props.stmt.children.length} />}
     </div>
   )
 }
@@ -137,14 +153,23 @@ function BlockLine({
   error,
   index,
   stmt,
+  parent,
 }: {
   error?: EvalError
   index: number
   stmt?: Stmt
+  parent?: Stmt
 }) {
+  const { text = 'text-slate-400' } = parent
+    ? getStmtGroupColor(parent.name)
+    : {}
   return (
-    <div className='-ml-8 flex items-center gap-2 h-fit not-hover:[&>button]:hidden'>
-      <div className='w-6 h-full flex items-center justify-end text-right text-sm font-mono text-slate-400 select-none pt-1'>
+    <div className='relative flex items-start gap-2 h-fit not-hover:[&>button]:hidden'>
+      <div
+        className={clsx(
+          'absolute top-0 -left-8 w-6 h-7 flex items-center justify-end text-right text-sm font-mono select-none pt-1',
+          text,
+        )}>
         {error ? (
           <IconExclamationCircleFilled
             className='text-red-400'
