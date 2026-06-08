@@ -7,8 +7,13 @@ import { IconEraser, IconX } from '@tabler/icons-react'
 import { useConsole } from '../hooks/console'
 
 export function Console() {
-  const { result, clear, isRunning, time } = use(OutputCtx)
+  const { result, clear, abort, isRunning, time } = use(OutputCtx)
   const { open, closeConsole } = useConsole()
+
+  const handleClose = () => {
+    if (isRunning) abort()
+    closeConsole()
+  }
 
   if (!open) return
 
@@ -29,7 +34,7 @@ export function Console() {
           )}
           <Button
             shape='square'
-            onClick={closeConsole}
+            onClick={handleClose}
             aria-label='Cerrar'
             icon={IconX}
           />

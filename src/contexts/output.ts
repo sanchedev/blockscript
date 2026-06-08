@@ -3,6 +3,7 @@ import type { InterpretResult } from '../lib/interpreter'
 
 interface OutputContext {
   run(): void
+  abort(): void
   clear(): void
   isRunning: boolean
   result: InterpretResult | null

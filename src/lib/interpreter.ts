@@ -62,6 +62,7 @@ export class Interpreter {
   currentLocation: Location[] = []
   output: string[] = []
   onOutput?: (line: string) => void
+  #signal?: AbortSignal
 
   write(str: string) {
     this.output.push(str)
@@ -84,7 +85,18 @@ export class Interpreter {
     return this.peekAcc.at(-1)?.()
   }
 
-  async interpret(statements: Stmt[]): Promise<InterpretResult> {
+  #checkAborted() {
+    if (this.#signal?.aborted) {
+      throw {
+        type: ErrorType.Runtime,
+        message: 'Ejecución cancelada por el usuario',
+        location: [...this.currentLocation],
+      } as EvalError
+    }
+  }
+
+  async interpret(statements: Stmt[], signal?: AbortSignal): Promise<InterpretResult> {
+    this.#signal = signal
     const validator = new Validator()
     const errors = validator.validate(statements)
     if (errors.length > 0) {
@@ -104,6 +116,7 @@ export class Interpreter {
 
   async executeStatements(stmts: Stmt[], env: Environment) {
     for (let i = 0; i < stmts.length; i++) {
+      this.#checkAborted()
       const stmt = stmts[i]
 
       this.nextAcc.push(() => stmts[++i])
@@ -175,6 +188,7 @@ export class Interpreter {
   async executeWhileStmt(stmt: WhileStmt, env: Environment) {
     let max = 0
     while (await this.evaluateExprContainer(stmt.condition, env)) {
+      this.#checkAborted()
       max++
       await this.executeStatements(stmt.body.children, env)
       if (max >= 65536) {
@@ -188,6 +202,7 @@ export class Interpreter {
   async executeDoWhileStmt(stmt: DoWhileStmt, env: Environment) {
     let max = 0
     do {
+      this.#checkAborted()
       await this.executeStatements(stmt.body.children, env)
       max++
       if (max >= 65536) {
@@ -204,6 +219,7 @@ export class Interpreter {
     const step = (await this.evaluateExprContainer(stmt.step, env)) as number
     let max = 0
     for (let i = start; step > 0 ? i <= end : i >= end; i += step) {
+      this.#checkAborted()
       env.vars.set(stmt.identifier, i)
       await this.executeStatements(stmt.body.children, env)
       max++
@@ -220,7 +236,24 @@ export class Interpreter {
       stmt.duration,
       env,
     )) as number
-    await new Promise((resolve) => setTimeout(resolve, duration))
+    const signal = this.#signal
+    if (signal) {
+      await new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(resolve, duration)
+        const onAbort = () => {
+          clearTimeout(timer)
+          reject({
+            type: ErrorType.Runtime,
+            message: 'Ejecución cancelada por el usuario',
+            location: [...this.currentLocation],
+          } as EvalError)
+        }
+        if (signal.aborted) { onAbort(); return }
+        signal.addEventListener('abort', onAbort, { once: true })
+      })
+    } else {
+      await new Promise(resolve => setTimeout(resolve, duration))
+    }
   }
 
   async evaluateExprContainer<T extends Stmt | Expr>(

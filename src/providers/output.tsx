@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { OutputCtx } from '../contexts/output'
 import { Interpreter, type InterpretResult } from '../lib/interpreter'
 import type { EvalError } from '../lib/errors'
@@ -11,11 +11,19 @@ export function OutputProvider(props: React.PropsWithChildren) {
   const [result, setResult] = useState<InterpretResult | null>(null)
   const [isRunning, setIsRunning] = useState(false)
   const [time, setTime] = useState<number | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+
+  const abort = () => {
+    abortRef.current?.abort()
+  }
 
   const run = async () => {
     if (isRunning) return
 
     useConsoleStore.getState().openConsole()
+
+    abortRef.current = new AbortController()
+    const signal = abortRef.current.signal
 
     setTime(null)
     setIsRunning(true)
@@ -30,7 +38,7 @@ export function OutputProvider(props: React.PropsWithChildren) {
 
     try {
       const startTime = performance.now()
-      const finalResult = await interpreter.interpret(stmt.children)
+      const finalResult = await interpreter.interpret(stmt.children, signal)
       const endTime = performance.now()
       setTime(endTime - startTime)
       if (finalResult.errors) {
@@ -56,6 +64,7 @@ export function OutputProvider(props: React.PropsWithChildren) {
         isRunning,
         result,
         run,
+        abort,
         clear,
         time,
       }}>
