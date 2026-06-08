@@ -33,6 +33,10 @@ export class BlockStmt extends Stmt {
     }
     return blockStmt
   }
+  toString(): string {
+    return `{ ${this.children.filter(Boolean).map(c => c.toString()).join('; ')} }`
+  }
+
   export() {
     return {
       ...super.export(),

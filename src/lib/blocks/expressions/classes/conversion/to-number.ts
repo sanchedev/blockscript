@@ -23,4 +23,8 @@ export class ToNumberExpr extends Expr {
   expression = new ExprContainer(this)
 
   type = PrimaryType.number
+
+  toString(): string {
+    return `numero(${this.expression.get()?.toString() ?? '?'})`
+  }
 }

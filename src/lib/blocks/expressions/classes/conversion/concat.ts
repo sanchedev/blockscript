@@ -36,4 +36,8 @@ export class ConcatExpr extends Expr {
   right = new ExprContainer(this)
 
   type = PrimaryType.string
+
+  toString(): string {
+    return `${this.left.get()?.toString() ?? '?'} + ${this.right.get()?.toString() ?? '?'}`
+  }
 }

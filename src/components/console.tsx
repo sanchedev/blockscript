@@ -88,6 +88,7 @@ function ConsoleLogError({ error }: { error: EvalError }) {
           {'\t\t'}
           <span className='text-red-400'>[{lc.index + 1}]: </span>
           {statementsLabels[lc.stmt]}
+          {lc.text != null && <span className='text-slate-500'> `{lc.text}`</span>}
         </pre>
       ))}
       <pre>{'-'.repeat(100)}</pre>

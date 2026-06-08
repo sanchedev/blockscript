@@ -16,4 +16,8 @@ export class NumberLiteralExpr extends Expr {
   edit(literal: number) {
     this.literal = literal
   }
+
+  toString(): string {
+    return String(this.literal)
+  }
 }

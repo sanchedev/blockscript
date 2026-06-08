@@ -21,4 +21,8 @@ export class WaitStmt extends Stmt {
     requiredMsg: 'No se ha establecido un tiempo de espera',
   })
   duration = new ExprContainer(this)
+
+  toString(): string {
+    return `esperar ${this.duration.get()?.toString() ?? '?'} ms`
+  }
 }

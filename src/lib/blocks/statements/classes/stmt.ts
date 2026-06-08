@@ -42,6 +42,10 @@ export class Stmt {
     }).extend(shape) as any
   }
 
+  toString(): string {
+    return '?'
+  }
+
   static createFrom(rawConfig: unknown): Stmt | null {
     if (this === Stmt) {
       const { data } = z.object({ name: z.string() }).safeParse(rawConfig)

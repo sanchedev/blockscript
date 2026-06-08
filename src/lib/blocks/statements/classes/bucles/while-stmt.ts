@@ -25,4 +25,8 @@ export class WhileStmt extends Stmt {
 
   @field.blockStmt()
   body: BlockStmt = new BlockStmt()
+
+  toString(): string {
+    return `mientras ${this.condition.get()?.toString() ?? '?'} hacer ${this.body.toString()}`
+  }
 }

@@ -23,4 +23,8 @@ export class ReadExpr extends Expr {
   prompt = new ExprContainer(this)
 
   type = PrimaryType.string
+
+  toString(): string {
+    return `leer(${this.prompt.get()?.toString() ?? '?'})`
+  }
 }

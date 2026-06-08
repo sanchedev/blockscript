@@ -50,4 +50,8 @@ export class BinaryExpr extends Expr {
   type = PrimaryType.number
 
   changeOperator(operator: BinaryOp) { this.operator = operator }
+
+  toString(): string {
+    return `${this.left.get()?.toString() ?? '?'} ${this.operator} ${this.right.get()?.toString() ?? '?'}`
+  }
 }

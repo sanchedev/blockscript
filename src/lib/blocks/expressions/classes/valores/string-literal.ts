@@ -16,4 +16,8 @@ export class StringLiteralExpr extends Expr {
   edit(literal: string) {
     this.literal = literal
   }
+
+  toString(): string {
+    return `"${this.literal}"`
+  }
 }

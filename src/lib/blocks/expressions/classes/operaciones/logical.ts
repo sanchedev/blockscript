@@ -47,4 +47,8 @@ export class LogicalExpr extends Expr {
   type = PrimaryType.boolean
 
   changeOperator(operator: LogicalOp) { this.operator = operator }
+
+  toString(): string {
+    return `${this.left.get()?.toString() ?? '?'} ${this.operator} ${this.right.get()?.toString() ?? '?'}`
+  }
 }

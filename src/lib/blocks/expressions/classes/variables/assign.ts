@@ -19,4 +19,8 @@ export class AssignExpr extends Expr {
   type: PrimaryType = PrimaryType.null
 
   changeIdentifier(identifier: string) { this.identifier = identifier }
+
+  toString(): string {
+    return `${this.identifier} = ${this.expression.get()?.toString() ?? '?'}`
+  }
 }

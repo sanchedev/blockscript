@@ -22,6 +22,7 @@ export interface EvalError extends ErrorInfo {
 export interface Location {
   index: number
   stmt: Statements
+  text?: string
 }
 
 export function error(

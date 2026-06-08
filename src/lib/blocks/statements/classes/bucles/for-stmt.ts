@@ -57,4 +57,8 @@ export class ForStmt extends Stmt {
   body: BlockStmt = new BlockStmt()
 
   changeIdentifier(identifier: string) { this.identifier = identifier }
+
+  toString(): string {
+    return `para ${this.identifier} desde ${this.start.get()?.toString() ?? '?'} hasta ${this.end.get()?.toString() ?? '?'} paso ${this.step.get()?.toString() ?? '?'} ${this.body.toString()}`
+  }
 }

@@ -9,4 +9,8 @@ export class ExprStmt extends Stmt {
 
   @field.exprContainer()
   expression = new ExprContainer(this)
+
+  toString(): string {
+    return `${this.expression.get()?.toString() ?? '?'};`
+  }
 }

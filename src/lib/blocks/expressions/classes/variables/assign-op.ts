@@ -41,4 +41,8 @@ export class AssignOpExpr extends Expr {
 
   changeIdentifier(identifier: string) { this.identifier = identifier }
   changeOperator(operator: AssignOp) { this.operator = operator }
+
+  toString(): string {
+    return `${this.identifier} ${this.operator} ${this.expression.get()?.toString() ?? '?'}`
+  }
 }

@@ -9,4 +9,8 @@ export class ElseStmt extends Stmt {
 
   @field.blockStmt()
   body: BlockStmt = new BlockStmt()
+
+  toString(): string {
+    return `sino entonces ${this.body.toString()}`
+  }
 }

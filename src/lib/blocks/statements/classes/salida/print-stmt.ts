@@ -9,4 +9,8 @@ export class PrintStmt extends Stmt {
 
   @field.exprContainer()
   expression = new ExprContainer(this)
+
+  toString(): string {
+    return `imprimir ${this.expression.get()?.toString() ?? '?'}`
+  }
 }

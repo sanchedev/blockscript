@@ -130,6 +130,21 @@ pnpm preview      # vite preview
 - `for-stmt`: `start`, `end`, `step` deben ser `número`; crea `Defineds` hijo con loop variable `número`; valida `body` recursivamente
 - `wait-stmt`: `duration` debe ser `número`
 
+## toString / pseudocódigo
+
+Cada `Stmt` y `Expr` implementa `toString(): string` que produce pseudocódigo plano para mostrar en errores de consola. El formato es el `label \`código\`` (label en negrita, pseudocódigo entre backticks en gris).
+
+- El `Expr` base retorna `'?'`. Cada clase concreta sobreescribe recursivamente.
+- Los `ExprContainer` vacíos se muestran como `?`.
+- `BlockStmt` joins sus hijos con `; ` dentro de `{ }`. Se usa `filter(Boolean)` para ignorar nulls.
+- `@field.scalar` no necesita serializer extra — toString usa la propiedad directamente.
+
+**Labels actualizados** (`src/lib/blocks/*/records/labels.ts`):
+- Statements: `Sentencia`, `Expresión`, `Impresión`, `Variable`, `Bloque`, `Si`, `O si`, `Si no`, `Mientras`, `Hacer mientras`, `Para`, `Espera`
+- Expressions: `Expresión`, `Texto`, `Nulo`, `Número`, `Booleano`, `Aritmética`, `Comparación`, `Variable`, `Asignación`, `Lectura`, `Concatenación`, `A texto`, `A número`, `A booleano`, `Lógico`, `Asign. compuesta`, `Incremento`
+
+**Error display**: `Location` agrega `text?: string` (resultado de `stmt.toString()` al momento de la validación). El console muestra `Label \`pseudocódigo\`` para cada entry en `error.location`.
+
 ## Colores
 
 Los colores de expresiones se derivan exclusivamente de `PrimaryType` vía `typeStyles(expr.type)` en `src/lib/type-styles.ts` (`bg`, `text`, `border`, `ring`). `ExprBlock` deriva `bg`/`text`/`border` directamente de `expr.type`. Componentes hijos solo especifican overrides cuando el tipo es dinámico (VariableExpr, AssignExpr, BinaryCompExpr, ReadExpr).
@@ -175,6 +190,7 @@ Los colores de menú se derivan de `sectionColorMap` en `src/lib/theme.ts`. Cada
 1. `expressions/enum.ts` → agregar al enum
 2. `expressions/classes/<grupo>/<name>.ts` → clase con `static default`, `static configSchema`, `static createFrom`, `copy()`, `export()`, `edit()`, `type`
 2b. Agregar `@field.exprContainer({ validate(container, expr) { ... }, requiredMsg })` a cada campo `ExprContainer`, y `@field.scalar(z.enum(...))` a campos escalares
+2c. Implementar `toString(): string` con pseudocódigo recursivo
 3. `expressions/classes/index.ts` → export
 4. `expressions/records/classes.ts`, `labels.ts`, `groups.ts`
 5. `components/blocks/expressions/<grupo>/<name>.tsx` → componente

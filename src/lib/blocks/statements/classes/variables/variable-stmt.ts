@@ -15,4 +15,8 @@ export class VariableStmt extends Stmt {
   expression = new ExprContainer(this)
 
   changeIdentifier(identifier: string) { this.identifier = identifier }
+
+  toString(): string {
+    return `sea ${this.identifier} = ${this.expression.get()?.toString() ?? '?'}`
+  }
 }

@@ -23,4 +23,8 @@ export class IncrementExpr extends Expr {
 
   changeIdentifier(identifier: string) { this.identifier = identifier }
   changeOperator(operator: IncrementOp) { this.operator = operator }
+
+  toString(): string {
+    return `${this.identifier}${this.operator}`
+  }
 }

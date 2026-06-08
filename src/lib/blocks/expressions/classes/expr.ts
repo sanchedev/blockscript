@@ -43,6 +43,10 @@ export class Expr {
     }).extend(shape) as any
   }
 
+  toString(): string {
+    return '?'
+  }
+
   static createFrom(rawConfig: unknown): Expr | null {
     if (this === Expr) {
       const { data } = z.object({ name: z.string() }).safeParse(rawConfig)

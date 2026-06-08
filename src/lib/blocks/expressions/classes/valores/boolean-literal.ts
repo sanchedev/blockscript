@@ -14,4 +14,8 @@ export class BooleanLiteralExpr extends Expr {
   type = PrimaryType.boolean
 
   edit(literal: boolean) { this.literal = literal }
+
+  toString(): string {
+    return this.literal ? 'V' : 'F'
+  }
 }

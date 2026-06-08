@@ -25,4 +25,8 @@ export class IfStmt extends Stmt {
 
   @field.blockStmt()
   thenBody: BlockStmt = new BlockStmt()
+
+  toString(): string {
+    return `si ${this.condition.get()?.toString() ?? '?'} entonces ${this.thenBody.toString()}`
+  }
 }

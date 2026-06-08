@@ -9,4 +9,8 @@ export class NullLiteralExpr extends Expr {
 
   @field.scalar(z.null())
   literal: null = null
+
+  toString(): string {
+    return 'nulo'
+  }
 }

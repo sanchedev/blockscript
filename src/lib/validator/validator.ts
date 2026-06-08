@@ -67,7 +67,7 @@ export class Validator {
     for (let i = 0; i < statements.length; i++) {
       const stmt = statements[i]
       if (stmt == null) continue
-      const location = { index: i, stmt: stmt.name }
+      const location = { index: i, stmt: stmt.name, text: stmt.toString() }
       this.#locationPath.push(location)
 
       const next = () => {

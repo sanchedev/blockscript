@@ -23,4 +23,8 @@ export class ToBooleanExpr extends Expr {
   expression = new ExprContainer(this)
 
   type = PrimaryType.boolean
+
+  toString(): string {
+    return `booleano(${this.expression.get()?.toString() ?? '?'})`
+  }
 }

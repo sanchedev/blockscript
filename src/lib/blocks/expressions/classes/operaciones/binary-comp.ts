@@ -75,4 +75,8 @@ export class BinaryCompExpr extends Expr {
   changeOperator(operator: BinaryCompOp) {
     this.operator = operator
   }
+
+  toString(): string {
+    return `${this.left.get()?.toString() ?? '?'} ${this.operator} ${this.right.get()?.toString() ?? '?'}`
+  }
 }

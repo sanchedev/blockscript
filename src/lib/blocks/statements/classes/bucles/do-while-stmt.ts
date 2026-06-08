@@ -25,4 +25,8 @@ export class DoWhileStmt extends Stmt {
 
   @field.blockStmt()
   body: BlockStmt = new BlockStmt()
+
+  toString(): string {
+    return `hacer ${this.body.toString()} mientras ${this.condition.get()?.toString() ?? '?'}`
+  }
 }

@@ -16,4 +16,8 @@ export class VariableExpr extends Expr {
 
   changeIdentifier(identifier: string) { this.identifier = identifier }
   changeType(type: Type) { this.type = type }
+
+  toString(): string {
+    return this.identifier || '?'
+  }
 }

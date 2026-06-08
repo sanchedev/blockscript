@@ -87,7 +87,7 @@ export function BlockStmtComp(
     add(dropped)
     renderTree()
   }
-  const { bg = 'bg-slate-100', border = 'border-slate-300' } = props.parent
+  const { bg = 'transparent', border = 'border-slate-300' } = props.parent
     ? getStmtGroupColor(props.parent.name)
     : {}
 

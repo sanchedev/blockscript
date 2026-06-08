@@ -12,4 +12,8 @@ export class ToStringExpr extends Expr {
   expression = new ExprContainer(this)
 
   type = PrimaryType.string
+
+  toString(): string {
+    return `texto(${this.expression.get()?.toString() ?? '?'})`
+  }
 }
