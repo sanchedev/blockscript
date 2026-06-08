@@ -27,14 +27,14 @@ export const useBlockDragStore = create<BlockDragStore>((set, get) => ({
     set({ positions })
   },
   replace(block) {
-    const oldPosition = get().positions.find(
+    const positions = get().positions.slice()
+    const posIndex = positions.findIndex(
       ({ block: b }) => b.id === block.id,
     )
+    if (posIndex === -1) return false
 
-    if (oldPosition == null) return false
-
-    const position = { ...oldPosition, block }
-    set({ positions: [...get().positions, position] })
+    positions[posIndex] = { ...positions[posIndex], block }
+    set({ positions })
 
     return true
   },

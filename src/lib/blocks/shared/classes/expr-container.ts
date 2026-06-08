@@ -50,7 +50,7 @@ export class ExprContainer<T extends Stmt | Expr> {
   copy(): ExprContainer<T> {
     const container = new ExprContainer<T>(
       this.parent,
-      this._validator?.bind(this),
+      this._validator,
       this.requiredMessage,
     )
     container._expr = this._expr?.copy() ?? null
