@@ -1,19 +1,18 @@
 import type { NumberLiteralExpr } from '../../../../lib/blocks/expressions'
 import type { ExprCompProps } from '../types'
-import { use } from 'react'
-import { ExprCtx } from '../../../../contexts/expr'
 import { Input } from '../../ui/input'
 import clsx from 'clsx'
 import { typeStyles } from '../../../../lib/type-styles'
+import { useRenderTree } from '../../../../hooks/render-tree'
 
 export function NumberLiteralExprComp(props: ExprCompProps<NumberLiteralExpr>) {
-  const { triggerUpdate } = use(ExprCtx)
+  const renderTree = useRenderTree()
 
   const handleChange = (value: string) => {
     const num = value === '' ? 0 : Number(value)
     if (!isNaN(num)) {
       props.expr.edit(num)
-      triggerUpdate?.()
+      renderTree()
     }
   }
 
@@ -34,6 +33,7 @@ export function NumberLiteralExprComp(props: ExprCompProps<NumberLiteralExpr>) {
         value={props.expr.literal.toString()}
         onChange={(e) => handleChange(e.target.value)}
         style={{ width: props.expr.literal.toString().length + 2 + 'ch' }}
+        disabled={props.disabled}
       />
     </label>
   )

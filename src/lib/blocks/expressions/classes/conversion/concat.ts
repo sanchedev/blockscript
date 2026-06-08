@@ -10,7 +10,7 @@ export class ConcatExpr extends Expr {
   name = Expressions.Concat
 
   @field.exprContainer({
-    validate(expr) {
+    validate(_container, expr) {
       if (expr.type !== PrimaryType.string)
         return {
           type: ErrorType.Type,
@@ -20,10 +20,10 @@ export class ConcatExpr extends Expr {
     },
     requiredMsg: 'No se ha establecido un texto a la izquierda',
   })
-  left: ExprContainer = new ExprContainer(this)
+  left = new ExprContainer(this)
 
   @field.exprContainer({
-    validate(expr) {
+    validate(_container, expr) {
       if (expr.type !== PrimaryType.string)
         return {
           type: ErrorType.Type,
@@ -33,7 +33,7 @@ export class ConcatExpr extends Expr {
     },
     requiredMsg: 'No se ha establecido un texto a la derecha',
   })
-  right: ExprContainer = new ExprContainer(this)
+  right = new ExprContainer(this)
 
   type = PrimaryType.string
 }

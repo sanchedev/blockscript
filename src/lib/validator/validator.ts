@@ -158,7 +158,7 @@ export class Validator {
     this.#errors.push(...validator.validate(block.children))
   }
 
-  #validateExprContainer(container: ExprContainer) {
+  #validateExprContainer<T extends Expr | Stmt>(container: ExprContainer<T>) {
     this.#addErrorByInfo(container.validate())
     this.#validateExpr(container.get() ?? new NullLiteralExpr())
   }

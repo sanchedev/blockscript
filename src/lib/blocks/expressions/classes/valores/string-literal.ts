@@ -9,9 +9,11 @@ export class StringLiteralExpr extends Expr {
   name = Expressions.StringLiteral
 
   @field.scalar(z.string())
-  literal: string = ''
+  literal: string = 'hola'
 
   type = PrimaryType.string
 
-  edit(literal: string) { this.literal = literal }
+  edit(literal: string) {
+    this.literal = literal
+  }
 }

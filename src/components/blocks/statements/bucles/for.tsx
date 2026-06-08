@@ -1,20 +1,19 @@
 import type { StmtCompProps } from '../types'
 import type { ForStmt } from '../../../../lib/blocks/statements'
 import { ExprContainerComp } from '../../ui/expr-container'
-import { use } from 'react'
-import { StmtCtx } from '../../../../contexts/stmt'
 import clsx from 'clsx'
 import { Input } from '../../ui/input'
 import { typeStyles } from '../../../../lib/type-styles'
 import { PrimaryType } from '../../../../lib/types'
 import { StmtWithBlock } from '../../ui/statements/stmt-with-block'
+import { useRenderTree } from '../../../../hooks/render-tree'
 
 export function ForStmtComp(props: StmtCompProps<ForStmt>) {
-  const { triggerUpdate } = use(StmtCtx)
+  const renderTree = useRenderTree()
 
   const handleIdentifierChange = (value: string) => {
     props.stmt.changeIdentifier(value)
-    triggerUpdate()
+    renderTree()
   }
 
   return (
@@ -43,14 +42,24 @@ export function ForStmtComp(props: StmtCompProps<ForStmt>) {
             />
           </label>
           <span>desde</span>
-          <ExprContainerComp container={props.stmt.start} />
+          <ExprContainerComp
+            container={props.stmt.start}
+            disabled={props.disabled}
+          />
           <span>hasta</span>
-          <ExprContainerComp container={props.stmt.end} />
+          <ExprContainerComp
+            container={props.stmt.end}
+            disabled={props.disabled}
+          />
           <span>paso</span>
-          <ExprContainerComp container={props.stmt.step} />
+          <ExprContainerComp
+            container={props.stmt.step}
+            disabled={props.disabled}
+          />
         </>
       }
       block={props.stmt.body}
+      disabled={props.disabled}
     />
   )
 }

@@ -13,7 +13,7 @@ export class AssignExpr extends Expr {
   identifier: string = ''
 
   @field.exprContainer({ requiredMsg: 'No se ha establecido un valor a la asignación' })
-  expression: ExprContainer = new ExprContainer(this)
+  expression = new ExprContainer(this)
 
   @field.scalar(z.enum(PrimaryType))
   type: PrimaryType = PrimaryType.null

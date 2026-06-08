@@ -10,7 +10,7 @@ export class WaitStmt extends Stmt {
   name = Statements.Wait
 
   @field.exprContainer({
-    validate(expr) {
+    validate(_container, expr) {
       if (expr.type !== PrimaryType.number)
         return {
           type: ErrorType.Type,
@@ -20,5 +20,5 @@ export class WaitStmt extends Stmt {
     },
     requiredMsg: 'No se ha establecido un tiempo de espera',
   })
-  duration: ExprContainer = new ExprContainer(this)
+  duration = new ExprContainer(this)
 }

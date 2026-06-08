@@ -1,9 +1,10 @@
 import clsx from 'clsx'
 import { getStmtGroupColor } from '../../../../lib/blocks/statements/records/groups'
-import type { StmtCompProps } from '../../statements/types'
+import type { Stmt } from '../../../../lib/blocks/statements'
 
-interface StmtBlockProps
-  extends React.HTMLAttributes<HTMLDivElement>, StmtCompProps {}
+interface StmtBlockProps extends React.HTMLAttributes<HTMLDivElement> {
+  stmt: Stmt
+}
 
 export function StmtBlock({ stmt, ...props }: StmtBlockProps) {
   const styles = getStmtGroupColor(stmt.name)

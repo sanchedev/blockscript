@@ -14,7 +14,10 @@ export function ReadExprComp(props: ExprCompProps<ReadExpr>) {
         typeStyles(props.expr.type).text,
       )}>
       <span>leer</span>
-      <ExprContainerComp container={props.expr.prompt} />
+      <ExprContainerComp
+        container={props.expr.prompt}
+        disabled={props.disabled}
+      />
     </div>
   )
 }

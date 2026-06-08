@@ -10,7 +10,7 @@ export class ToBooleanExpr extends Expr {
   name = Expressions.ToBoolean
 
   @field.exprContainer({
-    validate(expr) {
+    validate(_container, expr) {
       if (expr.type !== PrimaryType.string)
         return {
           type: ErrorType.Type,
@@ -20,7 +20,7 @@ export class ToBooleanExpr extends Expr {
     },
     requiredMsg: 'No se ha establecido un texto para la conversión',
   })
-  expression: ExprContainer = new ExprContainer(this)
+  expression = new ExprContainer(this)
 
   type = PrimaryType.boolean
 }

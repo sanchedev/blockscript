@@ -8,5 +8,5 @@ export class ExprStmt extends Stmt {
   name = Statements.Expr
 
   @field.exprContainer()
-  expression: ExprContainer = new ExprContainer(this)
+  expression = new ExprContainer(this)
 }

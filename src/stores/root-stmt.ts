@@ -14,5 +14,8 @@ export const useRootStmt = create<RootStmtStore>((set, get) => ({
     editorChanged.emit()
     return set({ stmt: get().stmt.copy() })
   },
-  setStmt: (stmt: BlockStmt) => set({ stmt }),
+  setStmt: (stmt: BlockStmt) => {
+    editorChanged.emit()
+    set({ stmt })
+  },
 }))

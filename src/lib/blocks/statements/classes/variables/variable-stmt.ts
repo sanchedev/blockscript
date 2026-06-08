@@ -12,7 +12,7 @@ export class VariableStmt extends Stmt {
   identifier: string = ''
 
   @field.exprContainer({ requiredMsg: 'No se ha establecido una valor a esta variable' })
-  expression: ExprContainer = new ExprContainer(this)
+  expression = new ExprContainer(this)
 
   changeIdentifier(identifier: string) { this.identifier = identifier }
 }

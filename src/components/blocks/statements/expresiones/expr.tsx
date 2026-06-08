@@ -6,7 +6,10 @@ import { StmtBlock } from '../../ui/statements/stmt-block'
 export function ExprStmtComp(props: StmtCompProps<ExprStmt>) {
   return (
     <StmtBlock stmt={props.stmt}>
-      <ExprContainerComp container={props.stmt.expression} />
+      <ExprContainerComp
+        container={props.stmt.expression}
+        disabled={props.disabled}
+      />
       <span>;</span>
     </StmtBlock>
   )

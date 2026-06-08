@@ -121,8 +121,8 @@ pnpm preview    # vite preview
   - `ExprCtx` provee `{ parent, triggerUpdate }`
   - `ExprContainerCtx` provee `{ container, triggerUpdate }`
   - Error/Output vía `ErrorCtx` + `OutputCtx`
-- **Drag & drop**: `drag-store` (Zustand) maneja el arrastre activo. `stmt-drags`/`expr-drags` almacenan items flotantes. El drag image nativo se oculta; un skeleton inline sigue al cursor. `BlockStmtComp` acepta drop de statements. `ExprContainerComp` acepta drop de expresiones con validación de tipo.
-- **Menú**: reemplaza la sidebar anterior. Tabs de expresiones/declaraciones con search y skeletons visuales clickables. Al clickear, crea instancia via `ClassName.default` y la agrega como item flotante.
+- **Drag & drop**: `drag-store` (Zustand) maneja el arrastre activo. `BlockDrag` wrapper hace draggable cada `StmtComp`/`ExprComp`. `block-drag-store` almacena items flotantes con posición absoluta. El drag image nativo se oculta; un `DragSkeleton` sigue al cursor. `BlockStmtComp` acepta drop de statements con validación de incompatibilidad. `ExprContainerComp` acepta drop de expresiones con validación de tipo.
+- **Menú**: reemplaza la sidebar anterior. Tabs de expresiones/declaraciones con search y skeletons visuales clickables. Al clickear, crea instancia via `ClassName.default` y la agrega a `useBlockDragStore().add()` como item flotante.
 - **Condicionales (sibling pattern)**: `IfStmt`, `ElseIfStmt`, `ElseStmt` viven como hermanos en `children[]`. Validador e intérprete usan `peek()`/`next()` para recorrerlos.
 - **Interpreter**: `executeStatements()` con `peek()`/`next()` dinámicos. Bucles limitados a 65536 iteraciones. Step negativo soportado en `ForStmt`. Todos los métodos async para evitar congelar la UI.
 - **Validator**: `Defineds` class con scoping padre-hijo. Recorre recursivamente con soporte para `BlockStmt` anidados.
@@ -136,6 +136,7 @@ pnpm preview    # vite preview
 
 1. `expressions/enum.ts` → agregar al enum
 2. `expressions/classes/<grupo>/<name>.ts` → clase (`static default`, `static configSchema`, `static createFrom`, `copy()`, `export()`, `edit()`, `type`)
+2b. Agregar `@field.exprContainer({ validate(container, expr) { ... }, requiredMsg })` a cada campo `ExprContainer`
 3. `expressions/classes/index.ts` → export
 4. `expressions/records/classes.ts`, `labels.ts`, `groups.ts`
 5. `components/blocks/expressions/<grupo>/<name>.tsx` → componente

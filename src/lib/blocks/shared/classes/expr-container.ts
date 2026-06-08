@@ -2,14 +2,19 @@ import { ErrorType, type ErrorInfo } from '../../../errors'
 import type { Expr } from '../../expressions'
 import type { Stmt } from '../../statements'
 
-export class ExprContainer {
+export type Validator<T extends Stmt | Expr> = (
+  self: ExprContainer<T>,
+  expr: Expr,
+) => ErrorInfo | null
+
+export class ExprContainer<T extends Stmt | Expr> {
   _expr: Expr | null = null
 
-  _validator?: (expr: Expr) => ErrorInfo | null
+  _validator?: Validator<T>
 
   constructor(
-    public parent: Stmt | Expr,
-    validator?: (expr: Expr) => ErrorInfo | null,
+    public parent: T,
+    validator?: Validator<T>,
     private requiredMessage?: string,
   ) {
     this._validator = validator
@@ -22,11 +27,8 @@ export class ExprContainer {
     return this._expr
   }
 
-  setValidator(
-    validator: ((expr: Expr) => ErrorInfo | null) | undefined,
-    requiredMessage?: string,
-  ) {
-    this._validator = validator
+  setValidator(validator: Validator<T> | undefined, requiredMessage?: string) {
+    this._validator = validator?.bind(this)
     if (requiredMessage !== undefined) this.requiredMessage = requiredMessage
   }
 
@@ -42,13 +44,13 @@ export class ExprContainer {
         }
       return null
     }
-    return this._validator?.(expr) ?? null
+    return this._validator?.(this, expr) ?? null
   }
 
-  copy(): ExprContainer {
-    const container = new ExprContainer(
+  copy(): ExprContainer<T> {
+    const container = new ExprContainer<T>(
       this.parent,
-      this._validator,
+      this._validator?.bind(this),
       this.requiredMessage,
     )
     container._expr = this._expr?.copy() ?? null

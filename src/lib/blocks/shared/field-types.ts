@@ -1,16 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type z from 'zod'
-import type { ErrorInfo } from '../../errors'
 import type { Expr } from '../expressions'
+import type { Stmt } from '../statements'
+import type { ErrorInfo } from '../../errors'
+import type { ExprContainer } from './classes/expr-container'
 
 interface ScalarField {
   kind: 'scalar'
   schema: z.ZodType
 }
 
-interface ExprContainerField {
+export interface ExprContainerField<K extends Stmt | Expr = Stmt | Expr> {
   kind: 'expr-container'
-  validate?: (this: any, expr: Expr) => ErrorInfo | null
+  validate?: (self: ExprContainer<K>, expr: Expr) => ErrorInfo | null
   requiredMsg?: string
 }
 

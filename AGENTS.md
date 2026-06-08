@@ -32,10 +32,11 @@ pnpm preview      # vite preview
   - `ExprCtx` provee `{ parent, triggerUpdate }` a expresiones hijas
   - `ExprContainerCtx` provee `{ container, triggerUpdate }` a `ExprComp` dentro de un contenedor
   - Errores vía `ErrorCtx` + `ErrorProvider`. Output vía `OutputCtx` + `OutputProvider`.
-- **Drag & drop**: `drag-store` (Zustand, `DragData` con `obj`, `pickPosition`, `unlock`) maneja el arrastre activo. `stmt-drags` y `expr-drags` (Zustand) almacenan items flotantes (posicionados fuera del árbol). El drag image nativo se oculta con `setDragImage(new Image(),0,0)`. Durante el drag, un skeleton sigue al cursor renderizado inline (calculando coordenadas del board con `useTransformContext`). El original se vuelve `opacity-25`.
-  - `BlockStmtComp` acepta drop de statements flotantes
+- **Field decorators** (`src/lib/blocks/shared/field-decorator.ts`): `@field.exprContainer({ validate, requiredMsg })` define validación inline en cada campo `ExprContainer`, con acceso a `validator(container, expr)` donde `container.parent` es la clase contenedora. `@field.scalar(schema)` para campos con Zod. `@field.blockStmt()` para hijos `BlockStmt`. El decorator registra metadata en `__fields` y asigna el validador al `ExprContainer` en el initializer.
+- **Drag & drop**: `drag-store` (Zustand, `DragData` con `obj`, `pickPosition`, `unlock`) maneja el arrastre activo. `BlockDrag` wrapper (`src/components/blocks/ui/block-drag.tsx`) envuelve cada `StmtComp`/`ExprComp` haciéndolo draggable, ocultando el drag image nativo con `setDragImage(new Image(),0,0)`. Durante el drag, un `DragSkeleton` sigue al cursor y el original se vuelve `opacity-0`. `block-drag-store` (Zustand) almacena items flotantes con posición absoluta en el board.
+  - `BlockStmtComp` acepta drop de statements flotantes (valida incompatibilidad: auto-referencia, duplicados)
   - `ExprContainerComp` acepta drop de expresiones flotantes con validación de tipo
-  - `Board` renderiza items flotantes + `BlockStmtComp` raíz
+  - `Board` renderiza `useBlockDrag().positions` (bloques flotantes) + `BlockStmtComp` raíz
 - **Entrypoint**: `src/main.tsx` → `App.tsx` → `Header` + `Entry` (editor con zoom/pan via `react-zoom-pan-pinch`) + `Menu` + `Console`
 - **Tipos**: `PrimaryType` enum con `número`, `texto`, `V / F`, `nulo`. `Expr.type` se asigna estáticamente en cada clase.
 - **Serializer**: Zod schemas con `static configSchema`, `static createFrom(rawConfig)`, y `export()` en cada clase. `Stmt.createFrom()` y `Expr.createFrom()` delegan a la clase concreta via `statementsClasses`/`expressionsClasses`. Las bases definen `id` + `name`; cada concreta extiende con sus props.
@@ -48,8 +49,8 @@ pnpm preview      # vite preview
 - **Interpreter** (`src/lib/interpreter.ts`): `executeStatements()` usa `peek()`/`next()` dinámicos. `executeIfStmt()` evalúa condición, ejecuta `thenBody`, luego recorre hermanos `ElseIfStmt`/`ElseStmt` con `peek()`/`next()` y flag `hasExecuted` para cortocircuito. `executeWhileStmt()` evalúa condición y ejecuta `body.children` en loop mientras sea verdadera. `executeDoWhileStmt()` ejecuta body al menos una vez. `executeForStmt()` evalúa start/end/step, loop con incremento (soporta step negativo). `executeWaitStmt()` espera N ms via `await new Promise(r => setTimeout(r, N))`. El intérprete es **async**: todos los métodos de ejecución y evaluación devuelven `Promise`, lo que evita congelar la página en bucles largos.
 - **Condicionales (sibling pattern)**: IfStmt, ElseIfStmt y ElseStmt viven como hermanos en `BlockStmt.children[]` (no como linked list con `elseBody`). El intérprete y validador usan `peek()`/`next()` y `statements[i + 1]` para consumirlos secuencialmente.
 - **Eventos**: `editorChanged` — pub/sub con `Event` class.
-- **Menú**: reemplaza la sidebar anterior. `Menu.tsx` con tabs de expresiones/declaraciones, search, y skeletons visuales como items clickables. Al clickear, crea una instancia y la agrega a `stmt-drags`/`expr-drags` como item flotante en el board.
-- **Skeletons**: `ExprSkeleton({ expr })` y `StmtSkeleton({ stmt })` — componentes read-only que renderizan la estructura visual completa. Usados en el menú (reemplazando botones de texto) y como ghost durante drag. Colores derivados de `typeStyles()` para expresiones y `blockColorMap` para statements.
+- **Menú**: reemplaza la sidebar anterior. `Menu.tsx` con tabs de expresiones/declaraciones, search, y skeletons visuales como items clickables. Al clickear, crea una instancia via `ClassName.default` y la agrega a `useBlockDragStore().add()` como item flotante en el board.
+- **Skeletons**: `Skeleton({ obj, position })` renderiza un `ExprComp`/`StmtComp` con `disabled` en una posición absoluta. `DragSkeleton` lo renderiza siguiendo al cursor durante el drag. Usados en el menú (reemplazando botones de texto) y como ghost durante drag. Colores derivados de `typeStyles()` para expresiones y `blockColorMap` para statements.
 - **Hooks útiles**: `useVariableIdentifiers()` recolecta variables definidas en ámbito vía `Defineds`. `useVariableType()` resuelve tipo de variable por identifier. `VariableInput` component con `<datalist>` para autocompletado.
 - **Colores de statements**: los colores se definen por grupo en `src/lib/blocks/statements/records/groups.ts` via `blockColor`. `StmtBlock` resuelve `blockColorMap[group.blockColor]` para bg/text/border.
 - **Colores de expresiones**: `typeStyles(type: PrimaryType)` en `src/lib/type-styles.ts` (`bg`, `text`, `border`, `ring`). `ExprBlock` deriva colores directamente de `expr.type`.
@@ -173,6 +174,7 @@ Los colores de menú se derivan de `sectionColorMap` en `src/lib/theme.ts`. Cada
 
 1. `expressions/enum.ts` → agregar al enum
 2. `expressions/classes/<grupo>/<name>.ts` → clase con `static default`, `static configSchema`, `static createFrom`, `copy()`, `export()`, `edit()`, `type`
+2b. Agregar `@field.exprContainer({ validate(container, expr) { ... }, requiredMsg })` a cada campo `ExprContainer`, y `@field.scalar(z.enum(...))` a campos escalares
 3. `expressions/classes/index.ts` → export
 4. `expressions/records/classes.ts`, `labels.ts`, `groups.ts`
 5. `components/blocks/expressions/<grupo>/<name>.tsx` → componente

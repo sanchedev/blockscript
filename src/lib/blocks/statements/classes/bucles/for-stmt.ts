@@ -15,7 +15,7 @@ export class ForStmt extends Stmt {
   identifier: string = ''
 
   @field.exprContainer({
-    validate(expr) {
+    validate(_container, expr) {
       if (expr.type !== PrimaryType.number)
         return {
           type: ErrorType.Type,
@@ -25,10 +25,10 @@ export class ForStmt extends Stmt {
     },
     requiredMsg: 'No se ha establecido un valor inicial',
   })
-  start: ExprContainer = new ExprContainer(this)
+  start = new ExprContainer(this)
 
   @field.exprContainer({
-    validate(expr) {
+    validate(_container, expr) {
       if (expr.type !== PrimaryType.number)
         return {
           type: ErrorType.Type,
@@ -38,10 +38,10 @@ export class ForStmt extends Stmt {
     },
     requiredMsg: 'No se ha establecido un valor final',
   })
-  end: ExprContainer = new ExprContainer(this)
+  end = new ExprContainer(this)
 
   @field.exprContainer({
-    validate(expr) {
+    validate(_container, expr) {
       if (expr.type !== PrimaryType.number)
         return {
           type: ErrorType.Type,
@@ -51,7 +51,7 @@ export class ForStmt extends Stmt {
     },
     requiredMsg: 'No se ha establecido un paso',
   })
-  step: ExprContainer = new ExprContainer(this)
+  step = new ExprContainer(this)
 
   @field.blockStmt()
   body: BlockStmt = new BlockStmt()

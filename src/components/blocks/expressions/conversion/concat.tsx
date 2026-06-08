@@ -13,9 +13,15 @@ export function ConcatExprComp(props: ExprCompProps<ConcatExpr>) {
         typeStyles(props.expr.type).border,
         typeStyles(props.expr.type).text,
       )}>
-      <ExprContainerComp container={props.expr.left} />
+      <ExprContainerComp
+        container={props.expr.left}
+        disabled={props.disabled}
+      />
       <span>+</span>
-      <ExprContainerComp container={props.expr.right} />
+      <ExprContainerComp
+        container={props.expr.right}
+        disabled={props.disabled}
+      />
     </div>
   )
 }

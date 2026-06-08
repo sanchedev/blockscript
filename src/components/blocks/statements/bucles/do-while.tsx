@@ -16,9 +16,13 @@ export function DoWhileStmtComp(props: StmtCompProps<DoWhileStmt>) {
       bottom={
         <>
           <span>mientras</span>
-          <ExprContainerComp container={props.stmt.condition} />
+          <ExprContainerComp
+            container={props.stmt.condition}
+            disabled={props.disabled}
+          />
         </>
       }
+      disabled={props.disabled}
     />
   )
 }

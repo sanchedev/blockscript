@@ -10,11 +10,15 @@ export function WhileStmtComp(props: StmtCompProps<WhileStmt>) {
       top={
         <>
           <span>mientras</span>
-          <ExprContainerComp container={props.stmt.condition} />
+          <ExprContainerComp
+            container={props.stmt.condition}
+            disabled={props.disabled}
+          />
           <span>hacer</span>
         </>
       }
       block={props.stmt.body}
+      disabled={props.disabled}
     />
   )
 }

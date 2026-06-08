@@ -1,43 +1,40 @@
-import { use, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import type { ExprContainer } from '../../../lib/blocks/shared/classes/expr-container'
 import { ExprComp } from '../expressions/expr'
-import { useDrag } from '../../../stores/drag-store'
 import clsx from 'clsx'
 import { Expr } from '../../../lib/blocks/expressions'
 import { ExprContainerCtx } from '../../../contexts/expr-container'
-import { StmtCtx } from '../../../contexts/stmt'
-import { ExprCtx } from '../../../contexts/expr'
 import { useBlockDrag } from '../../../hooks/block-drag'
+import { useCurrentDrag, useDrag } from '../../../hooks/drag'
+import type { Stmt } from '../../../lib/blocks/statements'
+import { useRenderTree } from '../../../hooks/render-tree'
 
-interface ExprContainerCompProps {
-  container: ExprContainer
+interface ExprContainerCompProps<T extends Stmt | Expr> {
+  container: ExprContainer<T>
+  disabled: boolean
 }
 
-export function ExprContainerComp({ container }: ExprContainerCompProps) {
-  const data = useDrag((state) => state.data)
-  const endDrag = useDrag((state) => state.endDrag)
-  const { findExpr, removeExpr } = useBlockDrag()
+export function ExprContainerComp<T extends Stmt | Expr = Stmt | Expr>({
+  container,
+  disabled,
+}: ExprContainerCompProps<T>) {
+  const data = useCurrentDrag()
+  const { end } = useDrag()
+  const { find, remove } = useBlockDrag()
   const [dragState, setDragState] = useState<'no' | 'ignore' | 'normal'>('no')
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const { triggerUpdate: updateStmt } = use(StmtCtx)
-  const { triggerUpdate: updateExpr } = use(ExprCtx)
-  const triggerUpdate = () => {
-    if (updateExpr) {
-      updateExpr()
-    } else {
-      updateStmt?.()
-    }
-  }
+  const renderTree = useRenderTree()
 
   const getExpr = () => {
     if (!readyToDrop || data == null) return
     const expr = data.obj
     if (!(expr instanceof Expr)) return
-    if (findExpr(expr.id) == null) return
+    if (find(expr.id) == null) return
     return expr
   }
 
   const handleDragOver = (ev: React.DragEvent) => {
+    if (disabled) return
     if (containerRef.current == null) return
     if (containerRef.current.children.length > 0) return
 
@@ -51,19 +48,21 @@ export function ExprContainerComp({ container }: ExprContainerCompProps) {
     }
   }
   const handleDragLeave = (ev: React.DragEvent) => {
+    if (disabled) return
     ev.preventDefault()
     ev.stopPropagation()
     setDragState('no')
   }
   const handleDrop = (ev: React.DragEvent) => {
+    if (disabled) return
     ev.stopPropagation()
-    endDrag()
+    end()
     setDragState('no')
     const expr = getExpr()
     if (expr == null) return
     container.set(expr)
-    removeExpr(expr.id)
-    triggerUpdate()
+    remove(expr.id)
+    renderTree()
   }
 
   const readyToDrop = container.get() == null
@@ -71,8 +70,7 @@ export function ExprContainerComp({ container }: ExprContainerCompProps) {
   return (
     <ExprContainerCtx
       value={{
-        container,
-        triggerUpdate,
+        container: container as unknown as ExprContainer<Stmt | Expr>,
       }}>
       <div
         ref={containerRef}
@@ -85,7 +83,11 @@ export function ExprContainerComp({ container }: ExprContainerCompProps) {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}>
         {container.get() && (
-          <ExprComp key={container.get()!.id} expr={container.get()!} />
+          <ExprComp
+            key={container.get()!.id}
+            expr={container.get()!}
+            disabled={disabled}
+          />
         )}
         {readyToDrop && dragState === 'normal' && '¡Suelta Aquí!'}
       </div>

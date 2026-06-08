@@ -50,7 +50,13 @@ export function Console() {
           </pre>
         )}
         <br />
-        {result?.errors && <ConsoleLogError errors={result.errors} />}
+        {result?.errors &&
+          result.errors.map((err, i) => (
+            <ConsoleLogError
+              key={`err-${err.location.map((l) => l.index).join(';')}:${i}`}
+              error={err}
+            />
+          ))}
         {result?.output?.map((line, i) => (
           <ConsoleLog key={`output-${i}`} line={line} />
         ))}
@@ -67,30 +73,24 @@ function ConsoleLog({ line }: { line: string }) {
   )
 }
 
-function ConsoleLogError({ errors }: { errors: EvalError[] }) {
-  return errors.map((err) => {
-    const key = err.location.map((l) => `${l.index}-${l.stmt}`).join('|')
-
-    return (
-      <div
-        key={key}
-        className='text-red-700 py-0.5 whitespace-pre-wrap break-all'>
-        <pre>
-          <span className='text-red-400 select-none'>✖ </span>
-          <span className='font-bold'>{err.type}</span>: {err.message}
+function ConsoleLogError({ error }: { error: EvalError }) {
+  return (
+    <div className='text-red-700 py-0.5 whitespace-pre-wrap break-all'>
+      <pre>
+        <span className='text-red-400 select-none'>✖ </span>
+        <span className='font-bold'>{error.type}</span>: {error.message}
+      </pre>
+      <pre>
+        <span className='font-bold'>{'\t'}En:</span>
+      </pre>
+      {error.location.map((lc) => (
+        <pre key={lc.index + '-' + lc.stmt}>
+          {'\t\t'}
+          <span className='text-red-400'>[{lc.index + 1}]: </span>
+          {statementsLabels[lc.stmt]}
         </pre>
-        <pre>
-          <span className='font-bold'>{'\t'}En:</span>
-        </pre>
-        {err.location.map((lc) => (
-          <pre key={lc.index + '-' + lc.stmt}>
-            {'\t\t'}
-            <span className='text-red-400'>[{lc.index + 1}]: </span>
-            {statementsLabels[lc.stmt]}
-          </pre>
-        ))}
-        <pre>{'-'.repeat(100)}</pre>
-      </div>
-    )
-  })
+      ))}
+      <pre>{'-'.repeat(100)}</pre>
+    </div>
+  )
 }

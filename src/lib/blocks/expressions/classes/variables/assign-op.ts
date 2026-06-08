@@ -25,7 +25,7 @@ export class AssignOpExpr extends Expr {
   operator: AssignOp = AssignOp.AddAssign
 
   @field.exprContainer({
-    validate(expr) {
+    validate(_container, expr) {
       if (expr.type !== PrimaryType.number)
         return {
           type: ErrorType.Type,
@@ -35,7 +35,7 @@ export class AssignOpExpr extends Expr {
     },
     requiredMsg: 'No se ha establecido un valor a la asignación',
   })
-  expression: ExprContainer = new ExprContainer(this)
+  expression = new ExprContainer(this)
 
   type = PrimaryType.number
 

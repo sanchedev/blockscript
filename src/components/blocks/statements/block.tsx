@@ -1,5 +1,5 @@
 import { IconExclamationCircleFilled } from '@tabler/icons-react'
-import { useLocationPath } from '../../../contexts/location-path'
+import { useLocationPath } from '../../../hooks/location-path'
 import { useError } from '../../../hooks/error'
 import { Stmt, type BlockStmt } from '../../../lib/blocks/statements/classes'
 import type { StmtCompProps } from './types'
@@ -7,12 +7,11 @@ import { LocationProvider } from '../../../providers/location'
 import clsx from 'clsx'
 import type { EvalError } from '../../../lib/errors'
 import { StmtComp } from './stmt'
-import { use, useState } from 'react'
-import { useDrag } from '../../../stores/drag-store'
+import { useState } from 'react'
 import { BlockStmtCtx } from '../../../contexts/block-stmt'
-import { StmtCtx } from '../../../contexts/stmt'
-import { useRootStmt } from '../../../stores/root-stmt'
 import { getStmtGroupColor } from '../../../lib/blocks/statements/records/groups'
+import { useCurrentDrag, useDrag } from '../../../hooks/drag'
+import { useRenderTree } from '../../../hooks/render-tree'
 
 export function BlockStmtComp(
   props: StmtCompProps<BlockStmt> & {
@@ -24,12 +23,11 @@ export function BlockStmtComp(
   const { getErrorByLocation } = useError()
   const locationPath = useLocationPath()
 
-  const data = useDrag((state) => state.data)
-  const endDrag = useDrag((state) => state.endDrag)
+  const data = useCurrentDrag()
+  const { end } = useDrag()
   const [dragState, setDragState] = useState<'no' | 'ignore' | 'normal'>('no')
 
-  const reload = useRootStmt((state) => state.reload)
-  const { triggerUpdate = reload } = use(StmtCtx)
+  const renderTree = useRenderTree()
 
   const add = (stmt: Stmt, index?: number) => {
     if (stmt == null) return
@@ -80,18 +78,14 @@ export function BlockStmtComp(
     ev.stopPropagation()
     setDragState('no')
     const dropped = getStmt()
-    if (dropped == null) {
-      endDrag()
+    if (dropped == null || isIncompatible()) {
+      end()
       return
     }
-    if (isIncompatible()) {
-      endDrag()
-      return
-    }
-    add(dropped)
-    endDrag()
     data?.unlock()
-    triggerUpdate()
+    end()
+    add(dropped)
+    renderTree()
   }
   const { bg = 'bg-slate-100', border = 'border-slate-300' } = props.parent
     ? getStmtGroupColor(props.parent.name)
@@ -107,6 +101,7 @@ export function BlockStmtComp(
         },
         border,
         props.fit && 'w-fit',
+        dragState === 'normal' && 'brightness-110',
       )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -127,15 +122,15 @@ export function BlockStmtComp(
               block: props.stmt,
               edit: (newStmt) => {
                 set(newStmt, i)
-                triggerUpdate()
+                renderTree()
               },
               remove: () => {
                 deleteStmt(i)
-                triggerUpdate()
+                renderTree()
               },
             }}>
             <BlockLine
-              key={stmt.id}
+              key={`lineof ${stmt.id}`}
               error={error}
               index={i}
               stmt={stmt}
@@ -181,7 +176,7 @@ function BlockLine({
       </div>
       {stmt ? (
         <LocationProvider location={{ index: index, stmt: stmt.name }}>
-          <StmtComp key={stmt.id} stmt={stmt} />
+          <StmtComp key={stmt.id} stmt={stmt} disabled={false} />
         </LocationProvider>
       ) : (
         <span className='text-slate-400 font-mono'>

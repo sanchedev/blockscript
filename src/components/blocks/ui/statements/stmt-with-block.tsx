@@ -16,6 +16,7 @@ export function StmtWithBlock({
   top,
   block,
   bottom,
+  disabled,
   ...props
 }: StmtWithBlockProps) {
   return (
@@ -24,7 +25,7 @@ export function StmtWithBlock({
         {top}
         <span>{'{'}</span>
       </StmtBlock>
-      <BlockStmtComp stmt={block} parent={stmt} />
+      <BlockStmtComp stmt={block} parent={stmt} disabled={disabled} />
       <StmtBlock stmt={stmt} className='min-w-12 rounded-tl-none'>
         <span>{'}'}</span>
         {bottom}

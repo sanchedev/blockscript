@@ -1,5 +1,3 @@
-import { use } from 'react'
-import { ExprCtx } from '../../../../contexts/expr'
 import {
   IncrementOp,
   type IncrementExpr,
@@ -9,22 +7,23 @@ import { typeStyles } from '../../../../lib/type-styles'
 import { VariableInput } from '../../ui/inputs/variable-input'
 import { Button } from '../../../ui/button'
 import clsx from 'clsx'
+import { useRenderTree } from '../../../../hooks/render-tree'
 
 const operators = [IncrementOp.Increment, IncrementOp.Decrement]
 const labels = ['incrementar', 'decrementar']
 
 export function IncrementExprComp(props: ExprCompProps<IncrementExpr>) {
-  const { triggerUpdate } = use(ExprCtx)
+  const renderTree = useRenderTree()
 
   const handleChange = (value: string) => {
     props.expr.changeIdentifier(value)
-    triggerUpdate?.()
+    renderTree()
   }
 
   const handleOperatorChange = (value: string) => {
     const op = value as IncrementOp
     props.expr.changeOperator(op)
-    triggerUpdate?.()
+    renderTree()
   }
 
   const operatorIndex = operators.indexOf(props.expr.operator)
@@ -46,6 +45,7 @@ export function IncrementExprComp(props: ExprCompProps<IncrementExpr>) {
         <VariableInput
           identifier={props.expr.identifier}
           onIdentifierChange={handleChange}
+          disabled={props.disabled}
         />
       </label>
       <Button
@@ -58,7 +58,8 @@ export function IncrementExprComp(props: ExprCompProps<IncrementExpr>) {
           handleOperatorChange(
             operators[(operatorIndex + 1) % operators.length],
           )
-        }>
+        }
+        disabled={props.disabled}>
         {props.expr.operator}
       </Button>
     </div>

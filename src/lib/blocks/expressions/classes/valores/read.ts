@@ -10,7 +10,7 @@ export class ReadExpr extends Expr {
   name = Expressions.Read
 
   @field.exprContainer({
-    validate(expr) {
+    validate(_container, expr) {
       if (expr.type !== PrimaryType.string)
         return {
           type: ErrorType.Type,
@@ -20,7 +20,7 @@ export class ReadExpr extends Expr {
     },
     requiredMsg: 'No se ha establecido una pregunta',
   })
-  prompt: ExprContainer = new ExprContainer(this)
+  prompt = new ExprContainer(this)
 
   type = PrimaryType.string
 }

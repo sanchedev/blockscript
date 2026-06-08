@@ -1,5 +1,3 @@
-import { use } from 'react'
-import { ExprCtx } from '../../../../contexts/expr'
 import type { VariableExpr } from '../../../../lib/blocks/expressions'
 import type { ExprCompProps } from '../types'
 import { useVariableType } from '../../../../hooks/variables'
@@ -7,15 +5,16 @@ import { PrimaryType } from '../../../../lib/types'
 import { VariableInput } from '../../ui/inputs/variable-input'
 import { typeStyles } from '../../../../lib/type-styles'
 import clsx from 'clsx'
+import { useRenderTree } from '../../../../hooks/render-tree'
 
 export function VariableExprComp(props: ExprCompProps<VariableExpr>) {
-  const { triggerUpdate } = use(ExprCtx)
+  const renderTree = useRenderTree()
   const getVariableType = useVariableType()
 
   const handleChange = (value: string) => {
     props.expr.changeIdentifier(value)
     props.expr.changeType(getVariableType(value) ?? PrimaryType.null)
-    triggerUpdate?.()
+    renderTree()
   }
 
   return (
@@ -30,6 +29,7 @@ export function VariableExprComp(props: ExprCompProps<VariableExpr>) {
       <VariableInput
         identifier={props.expr.identifier}
         onIdentifierChange={handleChange}
+        disabled={props.disabled}
       />
     </label>
   )

@@ -2,6 +2,11 @@ import { create } from 'zustand'
 import type { Stmt } from '../lib/blocks/statements'
 import type { Expr } from '../lib/blocks/expressions'
 
+interface Position {
+  x: number
+  y: number
+}
+
 interface DragData {
   obj: Stmt | Expr
   pickPosition: { x: number; y: number }
@@ -9,17 +14,30 @@ interface DragData {
 }
 
 interface DragStore {
-  data: DragData | null
-  startDrag(data: DragData): void
-  endDrag(): void
+  dragData: DragData | null
+  position: Position | null
+  used: boolean
+  start(dragData: DragData): void
+  move(position: Position): void
+  use(): void
+  end(): void
 }
 
-export const useDrag = create<DragStore>((set) => ({
-  data: null,
-  startDrag(data) {
-    set({ data })
+export const useDragStore = create<DragStore>((set, get) => ({
+  dragData: null,
+  position: null,
+  used: false,
+  start(dragData) {
+    set({ dragData })
   },
-  endDrag() {
-    set({ data: null })
+  move(position) {
+    set({ position })
+  },
+  use() {
+    if (get().dragData == null) return
+    set({ used: true })
+  },
+  end() {
+    set({ dragData: null, used: false, position: null })
   },
 }))

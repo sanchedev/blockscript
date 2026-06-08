@@ -12,6 +12,7 @@ export function ElseStmtComp(props: StmtCompProps<ElseStmt>) {
         </>
       }
       block={props.stmt.body}
+      disabled={props.disabled}
     />
   )
 }

@@ -7,7 +7,10 @@ export function PrintStmtComp(props: StmtCompProps<PrintStmt>) {
   return (
     <StmtBlock stmt={props.stmt}>
       <span>imprimir</span>
-      <ExprContainerComp container={props.stmt.expression} />
+      <ExprContainerComp
+        container={props.stmt.expression}
+        disabled={props.disabled}
+      />
     </StmtBlock>
   )
 }

@@ -108,7 +108,6 @@ export class Interpreter {
 
       this.nextAcc.push(() => stmts[++i])
       this.peekAcc.push(() => stmts[i + 1])
-      console.log(i)
       this.currentLocation.push({ index: i, stmt: stmt.name })
       if (stmt instanceof ExprStmt) {
         await this.executeExprStmt(stmt, env)
@@ -224,7 +223,10 @@ export class Interpreter {
     await new Promise((resolve) => setTimeout(resolve, duration))
   }
 
-  async evaluateExprContainer(container: ExprContainer, env: Environment) {
+  async evaluateExprContainer<T extends Stmt | Expr>(
+    container: ExprContainer<T>,
+    env: Environment,
+  ) {
     return this.evaluate(container.get() ?? new NullLiteralExpr(), env)
   }
 

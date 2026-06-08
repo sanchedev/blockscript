@@ -10,11 +10,15 @@ export function IfStmtComp(props: StmtCompProps<IfStmt>) {
       top={
         <>
           <span>si</span>
-          <ExprContainerComp container={props.stmt.condition} />
+          <ExprContainerComp
+            container={props.stmt.condition}
+            disabled={props.disabled}
+          />
           <span>entonces</span>
         </>
       }
       block={props.stmt.thenBody}
+      disabled={props.disabled}
     />
   )
 }

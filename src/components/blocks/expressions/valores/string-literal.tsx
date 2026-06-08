@@ -1,17 +1,16 @@
 import type { StringLiteralExpr } from '../../../../lib/blocks/expressions'
 import type { ExprCompProps } from '../types'
-import { use } from 'react'
-import { ExprCtx } from '../../../../contexts/expr'
 import { Input } from '../../ui/input'
 import clsx from 'clsx'
 import { typeStyles } from '../../../../lib/type-styles'
+import { useRenderTree } from '../../../../hooks/render-tree'
 
 export function StringLiteralExprComp(props: ExprCompProps<StringLiteralExpr>) {
-  const { triggerUpdate } = use(ExprCtx)
+  const renderTree = useRenderTree()
 
   const handleChange = (value: string) => {
     props.expr.edit(value)
-    triggerUpdate?.()
+    renderTree()
   }
 
   return (
@@ -30,6 +29,7 @@ export function StringLiteralExprComp(props: ExprCompProps<StringLiteralExpr>) {
         value={props.expr.literal}
         onChange={(e) => handleChange(e.target.value)}
         style={{ width: props.expr.literal.length + 'ch' }}
+        disabled={props.disabled}
       />
     </label>
   )

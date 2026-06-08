@@ -10,11 +10,15 @@ export function ElseIfStmtComp(props: StmtCompProps<ElseIfStmt>) {
       top={
         <>
           <span>o si</span>
-          <ExprContainerComp container={props.stmt.condition} />
+          <ExprContainerComp
+            container={props.stmt.condition}
+            disabled={props.disabled}
+          />
           <span>entonces</span>
         </>
       }
       block={props.stmt.body}
+      disabled={props.disabled}
     />
   )
 }

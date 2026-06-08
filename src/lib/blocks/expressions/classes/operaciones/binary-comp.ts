@@ -19,48 +19,60 @@ export class BinaryCompExpr extends Expr {
   static default = new BinaryCompExpr()
   name = Expressions.BinaryComp
 
-  @field.exprContainer({
-    validate(this: BinaryCompExpr, expr) {
-      if (expr.type !== PrimaryType.number && this.operator !== BinaryCompOp.Eq && this.operator !== BinaryCompOp.Neq)
+  static allowsMixedTypes(op: BinaryCompOp) {
+    return op === BinaryCompOp.Eq || op === BinaryCompOp.Neq
+  }
+
+  @field.exprContainer<BinaryCompExpr>({
+    validate(container, expr) {
+      if (
+        expr.type !== PrimaryType.number &&
+        !BinaryCompExpr.allowsMixedTypes(container.parent.operator)
+      )
         return {
           type: ErrorType.Type,
           message: `La comparación requiere número en ambos lados, recibió ${expr.type} a la izquierda`,
         }
-      const type = this.right.get()?.type ?? PrimaryType.null
-      if (expr.type !== type)
+      const rightExpr = container.parent.right.get()
+      if (rightExpr && expr.type !== rightExpr.type)
         return {
           type: ErrorType.Type,
-          message: `La comparación requiere el mismo tipo que la derecha ${type} en ambos lados, recibió ${expr.type} a la izquierda`,
+          message: `La comparación requiere el mismo tipo que la derecha (${rightExpr.type}) en ambos lados, recibió ${expr.type} a la izquierda`,
         }
       return null
     },
     requiredMsg: 'No se ha establecido un número a la izquierda',
   })
-  left: ExprContainer = new ExprContainer(this)
+  left = new ExprContainer(this)
 
   @field.scalar(z.enum(BinaryCompOp))
   operator: BinaryCompOp = BinaryCompOp.Gt
 
-  @field.exprContainer({
-    validate(this: BinaryCompExpr, expr) {
-      if (expr.type !== PrimaryType.number && this.operator !== BinaryCompOp.Eq && this.operator !== BinaryCompOp.Neq)
+  @field.exprContainer<BinaryCompExpr>({
+    validate(container, expr) {
+      if (
+        expr.type !== PrimaryType.number &&
+        !BinaryCompExpr.allowsMixedTypes(container.parent.operator)
+      )
         return {
           type: ErrorType.Type,
           message: `La comparación requiere número en ambos lados, recibió ${expr.type} a la derecha`,
         }
-      const type = this.left.get()?.type ?? PrimaryType.null
-      if (expr.type !== type)
+      const leftExpr = container.parent.left.get()
+      if (leftExpr && expr.type !== leftExpr.type)
         return {
           type: ErrorType.Type,
-          message: `La comparación requiere el mismo tipo que la izquierda ${type} en ambos lados, recibió ${expr.type} a la derecha`,
+          message: `La comparación requiere el mismo tipo que la izquierda (${leftExpr.type}) en ambos lados, recibió ${expr.type} a la derecha`,
         }
       return null
     },
     requiredMsg: 'No se ha establecido un número a la derecha',
   })
-  right: ExprContainer = new ExprContainer(this)
+  right = new ExprContainer(this)
 
   type = PrimaryType.boolean
 
-  changeOperator(operator: BinaryCompOp) { this.operator = operator }
+  changeOperator(operator: BinaryCompOp) {
+    this.operator = operator
+  }
 }

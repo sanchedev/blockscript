@@ -14,7 +14,10 @@ export function ToStringExprComp(props: ExprCompProps<ToStringExpr>) {
         typeStyles(props.expr.type).text,
       )}>
       <span>(</span>
-      <ExprContainerComp container={props.expr.expression} />
+      <ExprContainerComp
+        container={props.expr.expression}
+        disabled={props.disabled}
+      />
       <span>)</span>
     </div>
   )

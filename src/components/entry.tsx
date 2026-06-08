@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   TransformComponent,
   TransformWrapper,
@@ -16,21 +16,7 @@ const minScale = 2 ** minExpo
 const maxScale = 2 ** maxExpo
 
 export function Entry() {
-  const [width, setWidth] = useState(window.innerWidth)
-  const [height, setHeight] = useState(window.innerHeight)
   const [currentScale, setCurrentScale] = useState(1)
-
-  useEffect(() => {
-    const onResize = () => {
-      setWidth(window.innerWidth)
-      setHeight(window.innerHeight)
-    }
-    window.addEventListener('resize', onResize)
-
-    return () => {
-      window.removeEventListener('resize', onResize)
-    }
-  }, [])
 
   const transformRef = useRef<ReactZoomPanPinchRef | null>(null)
 
@@ -47,8 +33,8 @@ export function Entry() {
 
     const zoomFactor = newScale / scale
 
-    const centerX = width / 2
-    const centerY = height / 2
+    const centerX = window.innerWidth / 2
+    const centerY = window.innerHeight / 2
 
     const newX = centerX - (centerX - positionX) * zoomFactor
     const newY = centerY - (centerY - positionY) * zoomFactor
@@ -80,8 +66,8 @@ export function Entry() {
       <TransformWrapper
         ref={transformRef}
         initialScale={1}
-        initialPositionX={-width / 2 + 16}
-        initialPositionY={-height / 2 + 16}
+        initialPositionX={-1920 + 16}
+        initialPositionY={-1920 + 16}
         minScale={minScale}
         maxScale={maxScale}
         centerOnInit={false}

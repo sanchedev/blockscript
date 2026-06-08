@@ -19,7 +19,7 @@ export class BinaryExpr extends Expr {
   name = Expressions.Binary
 
   @field.exprContainer({
-    validate(expr) {
+    validate(_container, expr) {
       if (expr.type !== PrimaryType.number)
         return {
           type: ErrorType.Type,
@@ -29,13 +29,13 @@ export class BinaryExpr extends Expr {
     },
     requiredMsg: 'No se ha establecido un número a la izquierda',
   })
-  left: ExprContainer = new ExprContainer(this)
+  left = new ExprContainer(this)
 
   @field.scalar(z.enum(BinaryOp))
   operator: BinaryOp = BinaryOp.Add
 
   @field.exprContainer({
-    validate(expr) {
+    validate(_container, expr) {
       if (expr.type !== PrimaryType.number)
         return {
           type: ErrorType.Type,
@@ -45,7 +45,7 @@ export class BinaryExpr extends Expr {
     },
     requiredMsg: 'No se ha establecido un número a la derecha',
   })
-  right: ExprContainer = new ExprContainer(this)
+  right = new ExprContainer(this)
 
   type = PrimaryType.number
 

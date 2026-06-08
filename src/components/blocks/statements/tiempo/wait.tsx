@@ -7,7 +7,10 @@ export function WaitStmtComp(props: StmtCompProps<WaitStmt>) {
   return (
     <StmtBlock stmt={props.stmt}>
       <span>esperar</span>
-      <ExprContainerComp container={props.stmt.duration} />
+      <ExprContainerComp
+        container={props.stmt.duration}
+        disabled={props.disabled}
+      />
       <span>ms</span>
     </StmtBlock>
   )

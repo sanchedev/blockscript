@@ -1,5 +1,3 @@
-import { use } from 'react'
-import { ExprCtx } from '../../../../contexts/expr'
 import {
   type AssignOpExpr,
   AssignOp,
@@ -10,6 +8,7 @@ import { ExprContainerComp } from '../../ui/expr-container'
 import { VariableInput } from '../../ui/inputs/variable-input'
 import { Button } from '../../../ui/button'
 import clsx from 'clsx'
+import { useRenderTree } from '../../../../hooks/render-tree'
 
 const operators = [
   AssignOp.AddAssign,
@@ -22,17 +21,17 @@ const operators = [
 const labels = ['Más', 'Menos', 'Por', 'Sobre', 'Módulo']
 
 export function AssignOpExprComp(props: ExprCompProps<AssignOpExpr>) {
-  const { triggerUpdate } = use(ExprCtx)
+  const renderTree = useRenderTree()
 
   const handleChange = (value: string) => {
     props.expr.changeIdentifier(value)
-    triggerUpdate?.()
+    renderTree()
   }
 
   const handleOperatorChange = (value: string) => {
     const op = value as AssignOp
     props.expr.changeOperator(op)
-    triggerUpdate?.()
+    renderTree()
   }
 
   const operatorIndex = operators.indexOf(props.expr.operator)
@@ -66,10 +65,14 @@ export function AssignOpExprComp(props: ExprCompProps<AssignOpExpr>) {
           handleOperatorChange(
             operators[(operatorIndex + 1) % operators.length],
           )
-        }>
+        }
+        disabled={props.disabled}>
         {props.expr.operator}
       </Button>
-      <ExprContainerComp container={props.expr.expression} />
+      <ExprContainerComp
+        container={props.expr.expression}
+        disabled={props.disabled}
+      />
     </div>
   )
 }

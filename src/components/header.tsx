@@ -13,7 +13,7 @@ import { loadSavedFile } from '../lib/serializer/saved-file'
 import { useMenu } from '../stores/menu-store'
 import { useRootStmt } from '../stores/root-stmt'
 import { BlockStmt } from '../lib/blocks/statements/classes/block-stmt'
-import { useBlockDrag } from '../hooks/block-drag'
+import { useBlockDragPositions } from '../hooks/block-drag'
 import { useBlockDragStore } from '../stores/block-drag-store'
 
 export function Header() {
@@ -21,7 +21,7 @@ export function Header() {
   const toggle = useMenu((state) => state.toggle)
   const stmt = useRootStmt((state) => state.stmt)
   const setStmt = useRootStmt((state) => state.setStmt)
-  const { positions } = useBlockDrag()
+  const positions = useBlockDragPositions()
   const { exportToFile } = usePersistence(stmt, positions)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)

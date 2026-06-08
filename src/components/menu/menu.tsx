@@ -122,18 +122,10 @@ export function Menu() {
           value: string
           onSelect: () => void
         }): ReactNode => {
-          const cls = (
-            expressionsClasses as Record<
-              string,
-              typeof import('../../lib/blocks/expressions/classes/expr').Expr
-            >
-          )[value]
-          const clsStmt = (
-            statementsClasses as Record<
-              string,
-              typeof import('../../lib/blocks/statements/classes/stmt').Stmt
-            >
-          )[value]
+          const cls =
+            expressionsClasses[value as keyof typeof expressionsClasses]
+          const clsStmt =
+            statementsClasses[value as keyof typeof statementsClasses]
           return (
             <button
               className='outline-none focus-visible:ring-2 ring-slate-400 rounded-xl'

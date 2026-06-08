@@ -1,18 +1,17 @@
 import type { BooleanLiteralExpr } from '../../../../lib/blocks/expressions'
 import type { ExprCompProps } from '../types'
-import { use } from 'react'
-import { ExprCtx } from '../../../../contexts/expr'
 import { typeStyles } from '../../../../lib/type-styles'
 import clsx from 'clsx'
+import { useRenderTree } from '../../../../hooks/render-tree'
 
 export function BooleanLiteralExprComp(
   props: ExprCompProps<BooleanLiteralExpr>,
 ) {
-  const { triggerUpdate } = use(ExprCtx)
+  const renderTree = useRenderTree()
 
   const handleChange = () => {
     props.expr.edit(!props.expr.literal)
-    triggerUpdate?.()
+    renderTree()
   }
 
   return (
@@ -26,6 +25,7 @@ export function BooleanLiteralExprComp(
         typeStyles(props.expr.type).border,
         typeStyles(props.expr.type).ring,
       )}
+      disabled={props.disabled}
       aria-label={props.expr.literal ? 'Verdadero' : 'Falso'}>
       {props.expr.literal ? 'V' : 'F'}
     </button>

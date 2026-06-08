@@ -9,7 +9,7 @@ export class ToStringExpr extends Expr {
   name = Expressions.ToString
 
   @field.exprContainer({ requiredMsg: 'No se ha establecido un dato para la conversión' })
-  expression: ExprContainer = new ExprContainer(this)
+  expression = new ExprContainer(this)
 
   type = PrimaryType.string
 }

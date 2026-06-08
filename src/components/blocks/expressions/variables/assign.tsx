@@ -1,19 +1,18 @@
-import { use } from 'react'
-import { ExprCtx } from '../../../../contexts/expr'
 import type { AssignExpr } from '../../../../lib/blocks/expressions'
 import type { ExprCompProps } from '../types'
 import { typeStyles } from '../../../../lib/type-styles'
 import { ExprContainerComp } from '../../ui/expr-container'
 import { VariableInput } from '../../ui/inputs/variable-input'
 import clsx from 'clsx'
+import { useRenderTree } from '../../../../hooks/render-tree'
 
 export function AssignExprComp(props: ExprCompProps<AssignExpr>) {
-  const { triggerUpdate } = use(ExprCtx)
+  const renderTree = useRenderTree()
   const styles = typeStyles(props.expr.type)
 
   const handleChange = (value: string) => {
     props.expr.changeIdentifier(value)
-    triggerUpdate?.()
+    renderTree()
   }
 
   return (
@@ -34,10 +33,14 @@ export function AssignExprComp(props: ExprCompProps<AssignExpr>) {
         <VariableInput
           identifier={props.expr.identifier}
           onIdentifierChange={handleChange}
+          disabled={props.disabled}
         />
       </label>
       <span className={styles.text}>=</span>
-      <ExprContainerComp container={props.expr.expression} />
+      <ExprContainerComp
+        container={props.expr.expression}
+        disabled={props.disabled}
+      />
     </div>
   )
 }

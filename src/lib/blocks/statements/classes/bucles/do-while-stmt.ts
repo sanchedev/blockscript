@@ -11,7 +11,7 @@ export class DoWhileStmt extends Stmt {
   name = Statements.DoWhile
 
   @field.exprContainer({
-    validate(expr) {
+    validate(_container, expr) {
       if (expr.type !== PrimaryType.boolean)
         return {
           type: ErrorType.Type,
@@ -21,7 +21,7 @@ export class DoWhileStmt extends Stmt {
     },
     requiredMsg: 'No se ha establecido una condición',
   })
-  condition: ExprContainer = new ExprContainer(this)
+  condition = new ExprContainer(this)
 
   @field.blockStmt()
   body: BlockStmt = new BlockStmt()

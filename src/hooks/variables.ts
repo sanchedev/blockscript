@@ -1,4 +1,4 @@
-import { useLocationPath } from '../contexts/location-path'
+import { useLocationPath } from './location-path'
 import { type Type } from '../lib/types'
 import type { ExportedDefineds } from '../lib/validator/defineds'
 import { useError } from './error'

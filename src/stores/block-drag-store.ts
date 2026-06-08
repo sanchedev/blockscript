@@ -6,6 +6,7 @@ interface BlockDragStore {
   positions: { block: Stmt | Expr; x: number; y: number }[]
   add(block: Stmt | Expr, x: number, y: number): void
   move(id: string, x: number, y: number): void
+  replace(block: Stmt | Expr): boolean
   remove(id: string): boolean
   find(id: string): Stmt | Expr | undefined
   has(id: string): boolean
@@ -25,12 +26,23 @@ export const useBlockDragStore = create<BlockDragStore>((set, get) => ({
     positions[posIndex] = pos
     set({ positions })
   },
-  remove(id) {
-    const positions = get().positions.slice()
-    const posIndex = positions.findIndex(({ block }) => block.id === id)
-    if (posIndex === -1) return false
+  replace(block) {
+    const oldPosition = get().positions.find(
+      ({ block: b }) => b.id === block.id,
+    )
 
-    positions.splice(posIndex, 1)
+    if (oldPosition == null) return false
+
+    const position = { ...oldPosition, block }
+    set({ positions: [...get().positions, position] })
+
+    return true
+  },
+  remove(id) {
+    const oldPositions = get().positions
+    const positions = oldPositions.filter(({ block }) => block.id !== id)
+    if (oldPositions.length === positions.length) return false
+
     set({ positions })
     return true
   },
