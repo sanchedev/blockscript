@@ -1,4 +1,6 @@
 import {
+  BreakStmt,
+  ContinueStmt,
   DoWhileStmt,
   ExprStmt,
   ForStmt,
@@ -10,6 +12,8 @@ import {
   PrintStmt,
   VariableStmt,
 } from '../../../lib/blocks/statements'
+import { BreakStmtComp } from './bucles/break'
+import { ContinueStmtComp } from './bucles/continue'
 import { DoWhileStmtComp } from './bucles/do-while'
 import { ExprStmtComp } from './expresiones/expr'
 import { ForStmtComp } from './bucles/for'
@@ -81,6 +85,12 @@ export function StmtComp({
         )}
         {stmt instanceof WaitStmt && (
           <WaitStmtComp stmt={stmt} disabled={disabled} />
+        )}
+        {stmt instanceof BreakStmt && (
+          <BreakStmtComp stmt={stmt} disabled={disabled} />
+        )}
+        {stmt instanceof ContinueStmt && (
+          <ContinueStmtComp stmt={stmt} disabled={disabled} />
         )}
       </BlockDrag>
     </StmtCtx>

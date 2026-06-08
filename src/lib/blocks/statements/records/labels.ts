@@ -13,4 +13,6 @@ export const statementsLabels: Record<Statements, string> = {
   'do-while-stmt': 'Hacer mientras',
   'for-stmt': 'Para',
   'wait-stmt': 'Espera',
+  'break-stmt': 'Romper',
+  'continue-stmt': 'Continuar',
 }

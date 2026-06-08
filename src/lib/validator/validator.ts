@@ -22,6 +22,8 @@ import {
   DoWhileStmt,
   ForStmt,
 } from '../blocks/statements'
+import { BreakStmt } from '../blocks/statements/classes/bucles/break-stmt'
+import { ContinueStmt } from '../blocks/statements/classes/bucles/continue-stmt'
 import {
   ErrorType,
   type ErrorInfo,
@@ -37,6 +39,7 @@ import type { ExprContainer } from '../blocks/shared/classes/expr-container'
 export class Validator {
   defineds: Defineds
   #locationPath: Location[]
+  #loopDepth = 0
 
   constructor(
     definedsParent?: Defineds,
@@ -118,9 +121,9 @@ export class Validator {
         )
       } else if (stmt instanceof WhileStmt) {
         this.#validateExprContainer(stmt.condition)
-        this.#validateBlock(stmt.body)
+        this.#validateBlock(stmt.body, undefined, true)
       } else if (stmt instanceof DoWhileStmt) {
-        this.#validateBlock(stmt.body)
+        this.#validateBlock(stmt.body, undefined, true)
         this.#validateExprContainer(stmt.condition)
       } else if (stmt instanceof ForStmt) {
         if (stmt.identifier === '') {
@@ -142,9 +145,16 @@ export class Validator {
               this.#locationPath.map((l) => l.index),
             )
           }
-        })
+        }, true)
       } else if (stmt instanceof WaitStmt) {
         this.#validateExprContainer(stmt.duration)
+      } else if (stmt instanceof BreakStmt || stmt instanceof ContinueStmt) {
+        if (this.#loopDepth === 0) {
+          this.#addError(
+            ErrorType.InvalidStatement,
+            `'${statementsLabels[stmt.name]}' solo puede estar dentro de un bucle`,
+          )
+        }
       }
 
       this.#locationPath.pop()
@@ -153,8 +163,14 @@ export class Validator {
     return this.#errors
   }
 
-  #validateBlock(block: BlockStmt, edit?: (validator: Validator) => void) {
+  #validateBlock(
+    block: BlockStmt,
+    edit?: (validator: Validator) => void,
+    enterLoop = false,
+  ) {
+    const depth = enterLoop ? this.#loopDepth + 1 : this.#loopDepth
     const validator = new Validator(this.defineds, this.#locationPath, edit)
+    validator.#loopDepth = depth
     this.#errors.push(...validator.validate(block.children))
   }
 

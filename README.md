@@ -35,7 +35,7 @@ pnpm preview    # vite preview
 | Serialización | Zod |
 | Utilidades | clsx |
 
-## Statements (11)
+## Statements (13)
 
 | Clase | name | Props |
 |---|---|---|
@@ -50,6 +50,8 @@ pnpm preview    # vite preview
 | `DoWhileStmt` | `do-while-stmt` | `condition: ExprContainer, body: BlockStmt` |
 | `ForStmt` | `for-stmt` | `identifier, start, end, step: ExprContainer, body: BlockStmt` |
 | `WaitStmt` | `wait-stmt` | `duration: ExprContainer` |
+| `BreakStmt` | `break-stmt` | _(sin props)_ |
+| `ContinueStmt` | `continue-stmt` | _(sin props)_ |
 
 ## Expressions (16)
 
@@ -94,6 +96,7 @@ pnpm preview    # vite preview
 | ElseIfStmt / ElseStmt huérfanos | `InvalidStatement` |
 | WhileStmt / DoWhileStmt | condition V / F |
 | ForStmt | start/end/step número; crea variable de loop scoped |
+| BreakStmt / ContinueStmt | solo válido dentro de un bucle (loopDepth > 0) |
 
 ## Colores
 
@@ -110,7 +113,7 @@ pnpm preview    # vite preview
 | VariableStmt | Variables | `bg-cyan-200` |
 | PrintStmt | Salida | `bg-green-200` |
 | IfStmt / ElseIfStmt / ElseStmt | Condicionales | `bg-rose-200` |
-| WhileStmt / DoWhileStmt / ForStmt | Bucles | `bg-amber-200` |
+| WhileStmt / DoWhileStmt / ForStmt / BreakStmt / ContinueStmt | Bucles | `bg-amber-200` |
 | WaitStmt | Tiempo | `bg-yellow-200` |
 
 ## Arquitectura
@@ -124,7 +127,7 @@ pnpm preview    # vite preview
 - **Drag & drop**: `drag-store` (Zustand) maneja el arrastre activo. `BlockDrag` wrapper hace draggable cada `StmtComp`/`ExprComp`. `block-drag-store` almacena items flotantes con posición absoluta. El drag image nativo se oculta; un `DragSkeleton` sigue al cursor. `BlockStmtComp` acepta drop de statements con validación de incompatibilidad. `ExprContainerComp` acepta drop de expresiones con validación de tipo.
 - **Menú**: reemplaza la sidebar anterior. Tabs de expresiones/declaraciones con search y skeletons visuales clickables. Al clickear, crea instancia via `ClassName.default` y la agrega a `useBlockDragStore().add()` como item flotante.
 - **Condicionales (sibling pattern)**: `IfStmt`, `ElseIfStmt`, `ElseStmt` viven como hermanos en `children[]`. Validador e intérprete usan `peek()`/`next()` para recorrerlos.
-- **Interpreter**: `executeStatements()` con `peek()`/`next()` dinámicos. Bucles limitados a 65536 iteraciones. Step negativo soportado en `ForStmt`. Todos los métodos async para evitar congelar la UI.
+- **Interpreter**: `executeStatements()` con `peek()`/`next()` dinámicos. Bucles limitados a 65536 iteraciones. Step negativo soportado en `ForStmt`. BreakStmt/ContinueStmt lanzan `BreakSignal`/`ContinueSignal` (Error) atrapados por try/catch en cada bucle. Todos los métodos async para evitar congelar la UI.
 - **Validator**: `Defineds` class con scoping padre-hijo. Recorre recursivamente con soporte para `BlockStmt` anidados.
 - **Serializer**: Zod `configSchema` + `createFrom(rawConfig)` + `export()` en cada clase. `Stmt.createFrom()`/`Expr.createFrom()` delegan por `name`. Persistencia: autosave a `localStorage` cada 5s con debounce. Export/import `.bs` via `exportToFile()`.
 - **Eventos**: pub/sub con `Event<T>` (`editorChanged`).

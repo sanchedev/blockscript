@@ -8,6 +8,8 @@ import {
   IncrementExpr,
 } from './blocks/expressions/classes/variables/increment'
 import {
+  BreakStmt,
+  ContinueStmt,
   ElseIfStmt,
   ExprStmt,
   type Stmt,
@@ -122,30 +124,37 @@ export class Interpreter {
       this.nextAcc.push(() => stmts[++i])
       this.peekAcc.push(() => stmts[i + 1])
       this.currentLocation.push({ index: i, stmt: stmt.name })
-      if (stmt instanceof ExprStmt) {
-        await this.executeExprStmt(stmt, env)
-      } else if (stmt instanceof PrintStmt) {
-        await this.executePrintStmt(stmt, env)
-      } else if (stmt instanceof VariableStmt) {
-        await this.executeVariableStmt(stmt, env)
-      } else if (stmt instanceof IfStmt) {
-        await this.executeIfStmt(stmt as IfStmt, env)
-      } else if (stmt instanceof WhileStmt) {
-        await this.executeWhileStmt(stmt as WhileStmt, env)
-      } else if (stmt instanceof DoWhileStmt) {
-        await this.executeDoWhileStmt(stmt as DoWhileStmt, env)
-      } else if (stmt instanceof ForStmt) {
-        await this.executeForStmt(stmt as ForStmt, env)
-      } else if (stmt instanceof WaitStmt) {
-        await this.executeWaitStmt(stmt as WaitStmt, env)
-      } else {
-        this.addRuntimeErr(
-          `Tipo de sentencia desconocida: ${statementsLabels[stmt.name]}`,
-        )
+      try {
+        if (stmt instanceof ExprStmt) {
+          await this.executeExprStmt(stmt, env)
+        } else if (stmt instanceof PrintStmt) {
+          await this.executePrintStmt(stmt, env)
+        } else if (stmt instanceof VariableStmt) {
+          await this.executeVariableStmt(stmt, env)
+        } else if (stmt instanceof IfStmt) {
+          await this.executeIfStmt(stmt as IfStmt, env)
+        } else if (stmt instanceof WhileStmt) {
+          await this.executeWhileStmt(stmt as WhileStmt, env)
+        } else if (stmt instanceof DoWhileStmt) {
+          await this.executeDoWhileStmt(stmt as DoWhileStmt, env)
+        } else if (stmt instanceof ForStmt) {
+          await this.executeForStmt(stmt as ForStmt, env)
+        } else if (stmt instanceof WaitStmt) {
+          await this.executeWaitStmt(stmt as WaitStmt, env)
+        } else if (stmt instanceof BreakStmt) {
+          throw new BreakSignal()
+        } else if (stmt instanceof ContinueStmt) {
+          throw new ContinueSignal()
+        } else {
+          this.addRuntimeErr(
+            `Tipo de sentencia desconocida: ${statementsLabels[stmt.name]}`,
+          )
+        }
+      } finally {
+        this.currentLocation.pop()
+        this.nextAcc.pop()
+        this.peekAcc.pop()
       }
-      this.currentLocation.pop()
-      this.nextAcc.pop()
-      this.peekAcc.pop()
     }
   }
 
@@ -190,11 +199,17 @@ export class Interpreter {
     while (await this.evaluateExprContainer(stmt.condition, env)) {
       this.#checkAborted()
       max++
-      await this.executeStatements(stmt.body.children, env)
       if (max >= 65536) {
         this.addRuntimeErr(
           'Se excedió el número máximo (65536) de ciclos que puede hacer un bucle.',
         )
+      }
+      try {
+        await this.executeStatements(stmt.body.children, env)
+      } catch (e) {
+        if (e instanceof BreakSignal) break
+        if (e instanceof ContinueSignal) continue
+        throw e
       }
     }
   }
@@ -203,12 +218,18 @@ export class Interpreter {
     let max = 0
     do {
       this.#checkAborted()
-      await this.executeStatements(stmt.body.children, env)
       max++
       if (max >= 65536) {
         this.addRuntimeErr(
           'Se excedió el número máximo (65536) de ciclos que puede hacer un bucle.',
         )
+      }
+      try {
+        await this.executeStatements(stmt.body.children, env)
+      } catch (e) {
+        if (e instanceof BreakSignal) break
+        if (e instanceof ContinueSignal) continue
+        throw e
       }
     } while (await this.evaluateExprContainer(stmt.condition, env))
   }
@@ -221,12 +242,18 @@ export class Interpreter {
     for (let i = start; step > 0 ? i <= end : i >= end; i += step) {
       this.#checkAborted()
       env.vars.set(stmt.identifier, i)
-      await this.executeStatements(stmt.body.children, env)
       max++
       if (max >= 65536) {
         this.addRuntimeErr(
           'Se excedió el número máximo (65536) de ciclos que puede hacer un bucle.',
         )
+      }
+      try {
+        await this.executeStatements(stmt.body.children, env)
+      } catch (e) {
+        if (e instanceof BreakSignal) break
+        if (e instanceof ContinueSignal) continue
+        throw e
       }
     }
   }
@@ -396,4 +423,12 @@ const assignOps: Record<AssignOp, (a: number, b: number) => number> = {
   [AssignOp.MulAssign]: (a, b) => a * b,
   [AssignOp.DivAssign]: (a, b) => a / b,
   [AssignOp.ModAssign]: (a, b) => a % b,
+}
+
+export class BreakSignal extends Error {
+  name = 'BreakSignal'
+}
+
+export class ContinueSignal extends Error {
+  name = 'ContinueSignal'
 }

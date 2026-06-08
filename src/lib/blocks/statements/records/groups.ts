@@ -53,7 +53,7 @@ export const statementsGroups: Record<
   },
   [StatementsGroupKey.Bucles]: {
     title: 'Bucles',
-    items: [Statements.While, Statements.DoWhile, Statements.For],
+    items: [Statements.While, Statements.DoWhile, Statements.For, Statements.Break, Statements.Continue],
     blockColor: 'amber',
     sectionColor: 'amber',
     icon: IconRepeat,

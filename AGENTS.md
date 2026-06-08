@@ -15,9 +15,9 @@ pnpm preview      # vite preview
 
 ## Arquitectura
 
-- **Statements** (`src/lib/blocks/statements/classes/`) — `Stmt` (abstract, `id: string`, `name: Statements`, `static createFrom`, `export`, `copy`, `configSchema` con Zod), `BlockStmt` (raíz con `children: Stmt[]`), `ExprStmt`, `PrintStmt`, `VariableStmt`, `IfStmt`, `ElseIfStmt`, `ElseStmt`, `WhileStmt`, `DoWhileStmt`, `ForStmt`
+- **Statements** (`src/lib/blocks/statements/classes/`) — `Stmt` (abstract, `id: string`, `name: Statements`, `static createFrom`, `export`, `copy`, `configSchema` con Zod), `BlockStmt` (raíz con `children: Stmt[]`), `ExprStmt`, `PrintStmt`, `VariableStmt`, `IfStmt`, `ElseIfStmt`, `ElseStmt`, `WhileStmt`, `DoWhileStmt`, `ForStmt`, `BreakStmt`, `ContinueStmt`
   - Registros en `records/`: `classes.ts`, `labels.ts`, `groups.ts`
-  - Enum `Statements`: `Stmt`, `Expr`, `Print`, `Variable`, `Block`, `If`, `ElseIf`, `Else`, `While`, `DoWhile`, `For`, `Wait`
+  - Enum `Statements`: `Stmt`, `Expr`, `Print`, `Variable`, `Block`, `If`, `ElseIf`, `Else`, `While`, `DoWhile`, `For`, `Wait`, `Break`, `Continue`
 - **Expressions** (`src/lib/blocks/expressions/classes/`) — `Expr` (abstract, `type: PrimaryType`, `static createFrom`, `export`, `copy`, `configSchema` con Zod), más 16 clases concretas organizadas en subdirectorios por grupo:
   - `valores/`: NumberLiteralExpr, StringLiteralExpr, BooleanLiteralExpr, NullLiteralExpr, ReadExpr
   - `operaciones/`: BinaryExpr, BinaryCompExpr, LogicalExpr
@@ -46,7 +46,7 @@ pnpm preview      # vite preview
   - WhileStmt: valida `condition` tipo `V / F`, valida `body` recursivamente.
   - DoWhileStmt: same as WhileStmt.
   - ForStmt: valida `start`, `end`, `step` como `número`; crea `Defineds` hijo con loop variable; valida `body` recursivamente.
-- **Interpreter** (`src/lib/interpreter.ts`): `executeStatements()` usa `peek()`/`next()` dinámicos. `executeIfStmt()` evalúa condición, ejecuta `thenBody`, luego recorre hermanos `ElseIfStmt`/`ElseStmt` con `peek()`/`next()` y flag `hasExecuted` para cortocircuito. `executeWhileStmt()` evalúa condición y ejecuta `body.children` en loop mientras sea verdadera. `executeDoWhileStmt()` ejecuta body al menos una vez. `executeForStmt()` evalúa start/end/step, loop con incremento (soporta step negativo). `executeWaitStmt()` espera N ms via `await new Promise(r => setTimeout(r, N))` con soporte de aborto vía `AbortSignal` (Promise.race entre timeout y evento abort). El intérprete es **async**: todos los métodos de ejecución y evaluación devuelven `Promise`, lo que evita congelar la página en bucles largos.
+- **Interpreter** (`src/lib/interpreter.ts`): `executeStatements()` usa `peek()`/`next()` dinámicos. `executeIfStmt()` evalúa condición, ejecuta `thenBody`, luego recorre hermanos `ElseIfStmt`/`ElseStmt` con `peek()`/`next()` y flag `hasExecuted` para cortocircuito. `executeWhileStmt()` evalúa condición y ejecuta `body.children` en loop mientras sea verdadera. `executeDoWhileStmt()` ejecuta body al menos una vez. `executeForStmt()` evalúa start/end/step, loop con incremento (soporta step negativo). `executeWaitStmt()` espera N ms via `await new Promise(r => setTimeout(r, N))` con soporte de aborto vía `AbortSignal` (Promise.race entre timeout y evento abort). `BreakStmt`/`ContinueStmt` lanzan `BreakSignal`/`ContinueSignal` (subclases de `Error`). Cada bucle atrapa estas señales con try/catch alrededor de `executeStatements(body.children)`. `BreakSignal` → `break` del bucle; `ContinueSignal` → salta a la siguiente iteración. `executeStatements` usa try/finally para limpiar `nextAcc`/`peekAcc`/`currentLocation` incluso cuando se lanza una señal. El intérprete es **async**: todos los métodos de ejecución y evaluación devuelven `Promise`, lo que evita congelar la página en bucles largos.
 - **Abort**: El intérprete recibe un `AbortSignal` opcional en `interpret()`. `#checkAborted()` lanza `EvalError` si `signal.aborted`. Se chequea en cada iteración de `executeStatements`, loops (while/do-while/for, límite 65536), y después del timeout en WaitStmt. El `OutputProvider` expone `abort()` que llama al `AbortController` activo. El console llama `abort()` al cerrar si está en ejecución.
 - **Condicionales (sibling pattern)**: IfStmt, ElseIfStmt y ElseStmt viven como hermanos en `BlockStmt.children[]` (no como linked list con `elseBody`). El intérprete y validador usan `peek()`/`next()` y `statements[i + 1]` para consumirlos secuencialmente.
 - **Eventos**: `editorChanged` — pub/sub con `Event` class.
@@ -92,7 +92,7 @@ pnpm preview      # vite preview
 
 **BinaryOp**: `Add='+' Sub='-' Mul='*' Div='/' Mod='%'` **BinaryCompOp**: `Gt='>' Lt='<' Gte='>=' Lte='<=' Eq='==' Neq='!='` **LogicalOp**: `And='Y' Or='O'` **AssignOp**: `AddAssign='+=' SubAssign='-=' MulAssign='*=' DivAssign='/=' ModAssign='%='` **IncrementOp**: `Increment='++' Decrement='--'`
 
-## Statements (11)
+## Statements (13)
 
 | Clase | name | Props |
 |---|---|---|
@@ -107,6 +107,8 @@ pnpm preview      # vite preview
 | `DoWhileStmt` | `do-while-stmt` | `condition: ExprContainer, body: BlockStmt` |
 | `ForStmt` | `for-stmt` | `identifier, start, end, step: ExprContainer, body: BlockStmt` |
 | `WaitStmt` | `wait-stmt` | `duration: ExprContainer` |
+| `BreakStmt` | `break-stmt` | _(sin props)_ |
+| `ContinueStmt` | `continue-stmt` | _(sin props)_ |
 
 `Stmt` (abstract base) no se usa directamente, pero existe en enum.
 
@@ -130,6 +132,7 @@ pnpm preview      # vite preview
 - `do-while-stmt`: same as while-stmt
 - `for-stmt`: `start`, `end`, `step` deben ser `número`; crea `Defineds` hijo con loop variable `número`; valida `body` recursivamente
 - `wait-stmt`: `duration` debe ser `número`
+- `break-stmt`/`continue-stmt`: `loopDepth > 0` (debe estar dentro de un bucle); si está fuera → `ErrorType.InvalidStatement`
 
 ## toString / pseudocódigo
 
@@ -141,7 +144,7 @@ Cada `Stmt` y `Expr` implementa `toString(): string` que produce pseudocódigo p
 - `@field.scalar` no necesita serializer extra — toString usa la propiedad directamente.
 
 **Labels actualizados** (`src/lib/blocks/*/records/labels.ts`):
-- Statements: `Sentencia`, `Expresión`, `Impresión`, `Variable`, `Bloque`, `Si`, `O si`, `Si no`, `Mientras`, `Hacer mientras`, `Para`, `Espera`
+- Statements: `Sentencia`, `Expresión`, `Impresión`, `Variable`, `Bloque`, `Si`, `O si`, `Si no`, `Mientras`, `Hacer mientras`, `Para`, `Espera`, `Romper`, `Continuar`
 - Expressions: `Expresión`, `Texto`, `Nulo`, `Número`, `Booleano`, `Aritmética`, `Comparación`, `Variable`, `Asignación`, `Lectura`, `Concatenación`, `A texto`, `A número`, `A booleano`, `Lógico`, `Asign. compuesta`, `Incremento`
 
 **Error display**: `Location` agrega `text?: string` (resultado de `stmt.toString()` al momento de la validación). El console muestra `Label \`pseudocódigo\`` para cada entry en `error.location`.
@@ -167,7 +170,7 @@ Statements usan colores por grupo (definidos en `groups.ts` via `blockColor`):
 | VariableStmt | Variables | `bg-cyan-200` | `border-cyan-400` |
 | PrintStmt | Salida | `bg-green-200` | `border-green-400` |
 | IfStmt/ElseIfStmt/ElseStmt | Condicionales | `bg-rose-200` | `border-rose-400` |
-| WhileStmt/DoWhileStmt/ForStmt | Bucles | `bg-amber-200` | `border-amber-400` |
+| WhileStmt/DoWhileStmt/ForStmt/BreakStmt/ContinueStmt | Bucles | `bg-amber-200` | `border-amber-400` |
 | WaitStmt | Tiempo | `bg-yellow-200` | `border-yellow-400` |
 
 ## Grupos de menú (section-styles)
@@ -199,3 +202,16 @@ Los colores de menú se derivan de `sectionColorMap` en `src/lib/theme.ts`. Cada
 7. `components/blocks/ui/skeletons/expr-skeleton.tsx` → dispatch `instanceof`
 8. `validator/validator.ts` → `collectExprErrors` + validate type
 9. `interpreter.ts` → `evaluate()`
+
+## Agregar statement
+
+1. `statements/enum.ts` → agregar al enum
+2. `statements/classes/<grupo>/<name>.ts` → clase con `static default`, `name`, `toString()`
+2b. Agregar `@field.exprContainer(...)` a campos `ExprContainer`, `@field.scalar(z...)` a escalares, `@field.blockStmt()` a cuerpos
+3. `statements/classes/index.ts` → export
+4. `statements/records/classes.ts`, `labels.ts`, `groups.ts`
+5. `components/blocks/statements/<grupo>/<name>.tsx` → componente con `StmtBlock` o `StmtWithBlock`
+6. `components/blocks/statements/stmt.tsx` → dispatch `instanceof`
+7. `components/blocks/ui/skeletons/stmt-skeleton.tsx` → dispatch `instanceof`
+8. `validator/validator.ts` → branch en `validate()`
+9. `interpreter.ts` → branch en `executeStatements()` + método de ejecución

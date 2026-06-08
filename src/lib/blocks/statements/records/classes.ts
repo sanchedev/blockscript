@@ -1,5 +1,7 @@
 import { Statements } from '../enum'
 import {
+  BreakStmt,
+  ContinueStmt,
   ExprStmt,
   PrintStmt,
   VariableStmt,
@@ -27,4 +29,6 @@ export const statementsClasses = {
   [Statements.DoWhile]: DoWhileStmt,
   [Statements.For]: ForStmt,
   [Statements.Wait]: WaitStmt,
+  [Statements.Break]: BreakStmt,
+  [Statements.Continue]: ContinueStmt,
 }

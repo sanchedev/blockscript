@@ -1,6 +1,8 @@
 import type { Stmt } from '../../../../lib/blocks/statements'
 import {
   BlockStmt,
+  BreakStmt,
+  ContinueStmt,
   DoWhileStmt,
   ElseIfStmt,
   ElseStmt,
@@ -172,6 +174,22 @@ export function StmtSkeleton({ stmt }: { stmt: Stmt }) {
         <span>esperar</span>
         <SlotExpr expr={stmt.duration.get()} />
         <span className='text-xs'>ms</span>
+      </div>
+    )
+  }
+
+  if (stmt instanceof BreakStmt) {
+    return (
+      <div className={blockClass}>
+        <span>romper</span>
+      </div>
+    )
+  }
+
+  if (stmt instanceof ContinueStmt) {
+    return (
+      <div className={blockClass}>
+        <span>continuar</span>
       </div>
     )
   }
