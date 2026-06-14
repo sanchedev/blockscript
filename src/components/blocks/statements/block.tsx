@@ -49,7 +49,7 @@ export function BlockStmtComp(
   }
   const isIncompatible = () => {
     const stmt = getStmt()
-    if (!stmt) return false
+    if (!stmt) return true
     return (
       props.stmt.children.includes(stmt) ||
       stmt === props.stmt ||

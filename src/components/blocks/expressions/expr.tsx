@@ -37,7 +37,10 @@ import clsx from 'clsx'
 import { use } from 'react'
 import { ExprCtx } from '../../../contexts/expr'
 import { ExprContainerCtx } from '../../../contexts/expr-container'
-import { BlockDrag } from '../ui/block-drag'
+import { BlockDrag, type BlockDragElement } from '../ui/block-drag'
+import { IconTrash } from '@tabler/icons-react'
+import { useBlockDrag } from '../../../hooks/block-drag'
+import { useRenderTree } from '../../../hooks/render-tree'
 
 export function ExprComp({
   expr,
@@ -47,8 +50,17 @@ export function ExprComp({
   ...rest
 }: ExprCompProps & {
   position?: { x: number; y: number }
-} & React.HTMLAttributes<HTMLDivElement>) {
+} & BlockDragElement) {
   const { container } = use(ExprContainerCtx) ?? {}
+  const { remove } = useBlockDrag()
+  const renderTree = useRenderTree()
+
+  const handleRemove = () => {
+    if (container != null) container.set(null)
+    else remove(expr.id)
+
+    renderTree()
+  }
 
   return (
     <ExprCtx
@@ -58,12 +70,24 @@ export function ExprComp({
       <BlockDrag
         obj={expr}
         disabled={disabled}
-        onRemove={() => container != null && (container.set(null) ?? true)}
-        className={clsx(position && 'absolute', className)}
-        style={{
-          top: position?.y,
-          left: position?.x,
-        }}
+        onRemove={handleRemove}
+        contextMenuOptions={[
+          {
+            icon: IconTrash,
+            label: 'Eliminar',
+            variant: 'destructive',
+            action: handleRemove,
+          },
+        ]}
+        className={clsx(position ? 'absolute' : 'relative', className)}
+        style={
+          position
+            ? {
+                top: position.y,
+                left: position.x,
+              }
+            : undefined
+        }
         {...rest}>
         {expr instanceof StringLiteralExpr && (
           <StringLiteralExprComp expr={expr} disabled={disabled} />

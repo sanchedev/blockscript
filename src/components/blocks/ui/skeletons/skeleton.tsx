@@ -2,8 +2,9 @@ import { Expr } from '../../../../lib/blocks/expressions'
 import { Stmt } from '../../../../lib/blocks/statements'
 import { ExprComp } from '../../expressions/expr'
 import { StmtComp } from '../../statements/stmt'
+import type { BlockDragElement } from '../block-drag'
 
-interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
+interface SkeletonProps extends BlockDragElement {
   obj: Stmt | Expr
   position?: { x: number; y: number }
 }

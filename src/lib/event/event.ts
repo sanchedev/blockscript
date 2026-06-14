@@ -1,4 +1,4 @@
-export type Fun<T extends unknown[]> = (...args: T) => void
+import type { Fun } from './types'
 
 export class Event<T extends unknown[]> {
   #listeners = new Set<Fun<T>>()

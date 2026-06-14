@@ -29,7 +29,10 @@ import clsx from 'clsx'
 import { StmtCtx } from '../../../contexts/stmt'
 import { use } from 'react'
 import { BlockStmtCtx } from '../../../contexts/block-stmt'
-import { BlockDrag } from '../ui/block-drag'
+import { BlockDrag, type BlockDragElement } from '../ui/block-drag'
+import { useBlockDrag } from '../../../hooks/block-drag'
+import { useRenderTree } from '../../../hooks/render-tree'
+import { IconTrash } from '@tabler/icons-react'
 
 export function StmtComp({
   stmt,
@@ -39,10 +42,20 @@ export function StmtComp({
   ...rest
 }: StmtCompProps & {
   position?: { x: number; y: number }
-} & React.HTMLAttributes<HTMLDivElement>) {
+} & BlockDragElement) {
   const blockCtx = use(BlockStmtCtx)
   const block = blockCtx?.block
   const remove = blockCtx?.remove
+
+  const { remove: removeDrag } = useBlockDrag()
+  const renderTree = useRenderTree()
+
+  const handleRemove = () => {
+    if (remove != null) remove()
+    else removeDrag(stmt.id)
+
+    renderTree()
+  }
 
   return (
     <StmtCtx
@@ -52,9 +65,24 @@ export function StmtComp({
       <BlockDrag
         obj={stmt}
         disabled={disabled}
-        onRemove={() => remove != null && (remove() ?? true)}
+        onRemove={handleRemove}
+        contextMenuOptions={[
+          {
+            icon: IconTrash,
+            label: 'Eliminar',
+            variant: 'destructive',
+            action: handleRemove,
+          },
+        ]}
         className={clsx(position && 'absolute', className)}
-        style={{ top: position?.y, left: position?.x }}
+        style={
+          position
+            ? {
+                top: position.y,
+                left: position.x,
+              }
+            : undefined
+        }
         {...rest}>
         {stmt instanceof ExprStmt && (
           <ExprStmtComp stmt={stmt} disabled={disabled} />
