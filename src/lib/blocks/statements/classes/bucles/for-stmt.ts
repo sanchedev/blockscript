@@ -6,6 +6,7 @@ import { Stmt } from '../stmt'
 import { Statements } from '../../enum'
 import { BlockStmt } from '../block-stmt'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorStmt } from '../../../shared/visitor'
 
 export class ForStmt extends Stmt {
   static default = new ForStmt()
@@ -56,7 +57,13 @@ export class ForStmt extends Stmt {
   @field.blockStmt()
   body: BlockStmt = new BlockStmt()
 
-  changeIdentifier(identifier: string) { this.identifier = identifier }
+  changeIdentifier(identifier: string) {
+    this.identifier = identifier
+  }
+
+  accept(visitor: VisitorStmt): void {
+    visitor.visitForStmt(this)
+  }
 
   toString(): string {
     return `para ${this.identifier} desde ${this.start.get()?.toString() ?? '?'} hasta ${this.end.get()?.toString() ?? '?'} paso ${this.step.get()?.toString() ?? '?'} ${this.body.toString()}`

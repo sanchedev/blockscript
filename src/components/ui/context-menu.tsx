@@ -15,7 +15,7 @@ export interface ContextMenuOption {
 
 export function ContextMenu({ id, options }: ContextMenuProps) {
   return (
-    <div className='absolute bottom-full left-0 min-w-32 w-fit bg-white rounded-xl p-1 text-sm font-sans shadow'>
+    <div className='absolute bottom-full mb-1 left-0 min-w-32 w-fit bg-white rounded-xl p-1 text-sm font-sans shadow animate-fade-in-up animate-duration-fast animate-ease-out'>
       {options.map((option, i) => (
         <button
           key={`${id};ctxmenu[${i}]`}

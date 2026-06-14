@@ -1,24 +1,25 @@
-import type { StmtCompProps } from '../types'
-import type { IfStmt } from '../../../../lib/blocks/statements'
-import { ExprContainerComp } from '../../ui/expr-container'
+import { useStmtValue } from '../../../../hooks/tree'
+import type { StmtId } from '../../../../lib/ui/stmts'
+import { Statements } from '../../../../lib/blocks/statements/enum'
+import { ExprField } from '../../ui/expr-field'
 import { StmtWithBlock } from '../../ui/statements/stmt-with-block'
 
-export function IfStmtComp(props: StmtCompProps<IfStmt>) {
+export function IfStmtComp({ id, disabled }: { id: StmtId; disabled: boolean }) {
+  const [opt] = useStmtValue(id)
+  if (opt == null || opt.name !== Statements.If) return null
+
   return (
     <StmtWithBlock
-      stmt={props.stmt}
+      name={opt.name}
       top={
         <>
           <span>si</span>
-          <ExprContainerComp
-            container={props.stmt.condition}
-            disabled={props.disabled}
-          />
+          <ExprField exprId={opt.condition} parentId={id} field="condition" disabled={disabled} />
           <span>entonces</span>
         </>
       }
-      block={props.stmt.thenBody}
-      disabled={props.disabled}
+      bodyId={opt.body}
+      disabled={disabled}
     />
   )
 }

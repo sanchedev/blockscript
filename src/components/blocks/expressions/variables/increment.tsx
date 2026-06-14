@@ -1,51 +1,53 @@
+import { useExprValue } from '../../../../hooks/tree'
+import type { ExprId, IncrementExprOpt } from '../../../../lib/ui/exprs'
+import { Expressions } from '../../../../lib/blocks/expressions/enum'
 import {
   IncrementOp,
-  type IncrementExpr,
 } from '../../../../lib/blocks/expressions/classes/variables/increment'
-import type { ExprCompProps } from '../types'
 import { typeStyles } from '../../../../lib/type-styles'
 import { VariableInput } from '../../ui/inputs/variable-input'
 import { Button } from '../../../ui/button'
 import clsx from 'clsx'
-import { useRenderTree } from '../../../../hooks/render-tree'
 
 const operators = [IncrementOp.Increment, IncrementOp.Decrement]
 const labels = ['incrementar', 'decrementar']
 
-export function IncrementExprComp(props: ExprCompProps<IncrementExpr>) {
-  const renderTree = useRenderTree()
+export function IncrementExprComp({ id, disabled }: { id: ExprId; disabled: boolean }) {
+  const [expr, setExpr] = useExprValue(id)
+
+  if (expr == null || expr.name !== Expressions.Increment) return null
+  const opt = expr as IncrementExprOpt
 
   const handleChange = (value: string) => {
-    props.expr.changeIdentifier(value)
-    renderTree()
+    setExpr({ ...expr, identifier: value })
   }
 
   const handleOperatorChange = (value: string) => {
     const op = value as IncrementOp
-    props.expr.changeOperator(op)
-    renderTree()
+    setExpr({ ...expr, operator: op })
   }
 
-  const operatorIndex = operators.indexOf(props.expr.operator)
+  const operatorIndex = operators.indexOf(opt.operator)
+
   return (
     <div
       className={clsx(
         'border-x-2 rounded-lg font-mono flex items-center gap-1 px-1 h-6 shadow text-sm',
-        typeStyles(props.expr.type).bg,
-        typeStyles(props.expr.type).border,
-        typeStyles(props.expr.type).text,
+        typeStyles(opt.type).bg,
+        typeStyles(opt.type).border,
+        typeStyles(opt.type).text,
       )}>
       <label
         className={clsx(
           'flex rounded-lg font-mono has-focus-visible:ring-2 h-6',
-          typeStyles(props.expr.type).text,
-          typeStyles(props.expr.type).bg,
-          typeStyles(props.expr.type).ring,
+          typeStyles(opt.type).text,
+          typeStyles(opt.type).bg,
+          typeStyles(opt.type).ring,
         )}>
         <VariableInput
-          identifier={props.expr.identifier}
+          identifier={opt.identifier}
           onIdentifierChange={handleChange}
-          disabled={props.disabled}
+          disabled={disabled}
         />
       </label>
       <Button
@@ -59,8 +61,9 @@ export function IncrementExprComp(props: ExprCompProps<IncrementExpr>) {
             operators[(operatorIndex + 1) % operators.length],
           )
         }
-        disabled={props.disabled}>
-        {props.expr.operator}
+        disabled={disabled}
+      >
+        {opt.operator}
       </Button>
     </div>
   )

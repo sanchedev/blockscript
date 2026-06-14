@@ -5,6 +5,7 @@ import { Stmt } from '../stmt'
 import { Statements } from '../../enum'
 import { BlockStmt } from '../block-stmt'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorStmt } from '../../../shared/visitor'
 
 export class ElseIfStmt extends Stmt {
   static default = new ElseIfStmt()
@@ -25,6 +26,10 @@ export class ElseIfStmt extends Stmt {
 
   @field.blockStmt()
   body: BlockStmt = new BlockStmt()
+
+  accept(visitor: VisitorStmt): void {
+    visitor.visitElseIfStmt(this)
+  }
 
   toString(): string {
     return `o si ${this.condition.get()?.toString() ?? '?'} entonces ${this.body.toString()}`

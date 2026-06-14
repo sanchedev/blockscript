@@ -5,6 +5,7 @@ import { PrimaryType } from '../../../../types'
 import { ExprContainer } from '../../../shared/classes/expr-container'
 import { ErrorType } from '../../../../errors'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorExpr } from '../../../shared/visitor'
 
 export enum LogicalOp {
   And = 'Y',
@@ -46,7 +47,13 @@ export class LogicalExpr extends Expr {
 
   type = PrimaryType.boolean
 
-  changeOperator(operator: LogicalOp) { this.operator = operator }
+  changeOperator(operator: LogicalOp) {
+    this.operator = operator
+  }
+
+  accept(visitor: VisitorExpr): void {
+    visitor.visitLogicalExpr(this)
+  }
 
   toString(): string {
     return `${this.left.get()?.toString() ?? '?'} ${this.operator} ${this.right.get()?.toString() ?? '?'}`

@@ -3,6 +3,7 @@ import { PrimaryType } from '../../../../types'
 import { Expressions } from '../../enum'
 import { Expr } from '../expr'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorExpr } from '../../../shared/visitor'
 
 export enum IncrementOp {
   Increment = '++',
@@ -21,8 +22,16 @@ export class IncrementExpr extends Expr {
 
   type = PrimaryType.number
 
-  changeIdentifier(identifier: string) { this.identifier = identifier }
-  changeOperator(operator: IncrementOp) { this.operator = operator }
+  changeIdentifier(identifier: string) {
+    this.identifier = identifier
+  }
+  changeOperator(operator: IncrementOp) {
+    this.operator = operator
+  }
+
+  accept(visitor: VisitorExpr): void {
+    visitor.visitIncrementExpr(this)
+  }
 
   toString(): string {
     return `${this.identifier}${this.operator}`

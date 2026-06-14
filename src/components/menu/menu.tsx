@@ -13,8 +13,10 @@ import { statementsClasses } from '../../lib/blocks/statements/records/classes'
 import { ExprSkeleton } from '../blocks/ui/skeletons/expr-skeleton'
 import { StmtSkeleton } from '../blocks/ui/skeletons/stmt-skeleton'
 import { useBlockDrag } from '../../hooks/block-drag'
-import type { Expressions } from '../../lib/blocks/expressions/enum'
-import type { Statements } from '../../lib/blocks/statements/enum'
+import { useTreeStore } from '../../stores/tree-store'
+import { createDefaultExprOptions, createDefaultStmtOptions } from '../../lib/ui/default-options'
+import { Expressions } from '../../lib/blocks/expressions/enum'
+import { Statements } from '../../lib/blocks/statements/enum'
 
 const menuSections = {
   expr: {
@@ -83,12 +85,26 @@ export function Menu() {
     const x = positionX - window.innerWidth / 2
     const y = positionY - window.innerHeight / 2
 
-    const block =
-      selected === 'expr'
-        ? new expressionsClasses[item.value as Expressions]()
-        : new statementsClasses[item.value as Statements]()
+    const store = useTreeStore.getState()
 
-    add(block, x, y)
+    if (selected === 'expr') {
+      const opt = createDefaultExprOptions(value as Expressions)
+      store.setExpr(opt.id, opt)
+      add(opt.id, x, y)
+    } else {
+      const opt = createDefaultStmtOptions(value as Statements)
+      store.setStmt(opt.id, opt)
+      if (opt.name === Statements.If || opt.name === Statements.ElseIf || opt.name === Statements.Else ||
+          opt.name === Statements.While || opt.name === Statements.DoWhile || opt.name === Statements.For) {
+        const body: import('../../lib/ui/stmts').StmtOptions = {
+          id: (opt as import('../../lib/ui/stmts').IfStmtOpt | import('../../lib/ui/stmts').WhileStmtOpt | import('../../lib/ui/stmts').ForStmtOpt).body,
+          name: Statements.Block,
+          stmts: [],
+        }
+        store.setStmt(body.id, body)
+      }
+      add(opt.id, x, y)
+    }
   }
 
   const section = menuSections[selected]

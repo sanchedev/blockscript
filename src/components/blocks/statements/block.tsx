@@ -1,65 +1,50 @@
 import { IconExclamationCircleFilled } from '@tabler/icons-react'
 import { useLocationPath } from '../../../hooks/location-path'
 import { useError } from '../../../hooks/error'
-import { Stmt, type BlockStmt } from '../../../lib/blocks/statements/classes'
-import type { StmtCompProps } from './types'
+import type { StmtId } from '../../../lib/ui/stmts'
 import { LocationProvider } from '../../../providers/location'
 import clsx from 'clsx'
 import type { EvalError } from '../../../lib/errors'
-import { StmtComp } from './stmt'
 import { useState } from 'react'
-import { BlockStmtCtx } from '../../../contexts/block-stmt'
-import { getStmtGroupColor } from '../../../lib/blocks/statements/records/groups'
 import { useCurrentDrag, useDrag } from '../../../hooks/drag'
-import { useRenderTree } from '../../../hooks/render-tree'
+import { useStmtValue } from '../../../hooks/tree'
+import { Statements } from '../../../lib/blocks/statements/enum'
+import { useTreeStore } from '../../../stores/tree-store'
+import { StmtComp } from './stmt'
 
-export function BlockStmtComp(
-  props: StmtCompProps<BlockStmt> & {
-    parent?: Stmt
-    main?: boolean
-    fit?: boolean
-  },
-) {
+interface BlockStmtCompProps {
+  id: StmtId
+  main?: boolean
+  fit?: boolean
+  disabled?: boolean
+}
+
+export function BlockStmtComp({
+  id,
+  main,
+  fit,
+  disabled = false,
+}: BlockStmtCompProps) {
   const { getErrorByLocation } = useError()
   const locationPath = useLocationPath()
-
   const data = useCurrentDrag()
   const { end } = useDrag()
   const [dragState, setDragState] = useState<'no' | 'ignore' | 'normal'>('no')
+  const [opt] = useStmtValue(id)
 
-  const renderTree = useRenderTree()
-
-  const add = (stmt: Stmt, index?: number) => {
-    if (stmt == null) return
-    if (index == null) props.stmt.children.push(stmt)
-    else props.stmt.children.splice(index, 0, stmt)
-  }
-  const set = (stmt: Stmt, index: number) => {
-    props.stmt.children.splice(index, 1, stmt)
-  }
-  const deleteStmt = (index: number) => {
-    props.stmt.children.splice(index, 1)
-  }
-
-  const getStmt = () => {
-    if (data == null) return
-    const stmt = data.obj
-    if (!(stmt instanceof Stmt)) return
-    return stmt
-  }
-  const isIncompatible = () => {
-    const stmt = getStmt()
-    if (!stmt) return true
-    return (
-      props.stmt.children.includes(stmt) ||
-      stmt === props.stmt ||
-      stmt === props.parent
-    )
+  const isIncompatible = (): boolean => {
+    if (data == null) return true
+    if (opt == null || opt.name !== Statements.Block) return true
+    const children = opt.stmts
+    const selfId = id
+    return children.includes(data.id as StmtId) || data.id === selfId
   }
 
   const handleDragOver = (ev: React.DragEvent) => {
     ev.preventDefault()
     ev.stopPropagation()
+    if (disabled) return
+
     ev.dataTransfer.dropEffect = 'move'
     if (dragState === 'no') {
       if (isIncompatible()) {
@@ -73,73 +58,66 @@ export function BlockStmtComp(
     ev.preventDefault()
     ev.stopPropagation()
     setDragState('no')
+    if (disabled) return
   }
   const handleDrop = (ev: React.DragEvent) => {
     ev.stopPropagation()
     setDragState('no')
-    const dropped = getStmt()
-    if (dropped == null || isIncompatible()) {
+    if (disabled) return
+
+    if (data == null || isIncompatible()) {
       end()
       return
     }
-    data?.unlock()
+    const droppedId = data.id
+    if (!droppedId.startsWith('stmt')) return
+    data.unlock()
     end()
-    add(dropped)
-    renderTree()
+    useTreeStore
+      .getState()
+      .addStmt(useTreeStore.getState().stmts[droppedId as StmtId]!, id)
   }
-  const { bg = 'transparent', border = 'border-slate-300' } = props.parent
-    ? getStmtGroupColor(props.parent.name)
-    : {}
+
+  const { bg = 'transparent', border = 'border-slate-300' } = {}
+
+  if (opt == null || opt.name !== Statements.Block) return null
 
   return (
     <div
       className={clsx(
         'stmt-block relative border-l-2 rounded-2xl flex flex-col gap-2 items-start',
         {
-          'p-10 shadow bg-slate-100': props.main,
-          'p-4 pl-10 rounded-t-none rounded-b-none': !props.main,
+          'p-10 shadow bg-slate-100': main,
+          'p-4 pl-10 rounded-t-none rounded-b-none': !main,
         },
         border,
-        props.fit && 'w-fit',
+        fit && 'w-fit',
         dragState === 'normal' && 'brightness-110',
       )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}>
       <div className={clsx('absolute inset-y-0 left-0 w-9', bg)} />
-      {props.stmt.children.map((stmt, i) => {
+      {opt.stmts.map((childId, i) => {
+        const childOpt = useTreeStore.getState().stmts[childId]
         const selfLoc = {
           index: i,
-          stmt: stmt.name,
+          stmt: childOpt?.name ?? Statements.Stmt,
         }
         const selfPath = [...locationPath, selfLoc]
         const error = getErrorByLocation(...selfPath)
 
         return (
-          <BlockStmtCtx
-            key={`bsc-${stmt.id}`}
-            value={{
-              block: props.stmt,
-              edit: (newStmt) => {
-                set(newStmt, i)
-                renderTree()
-              },
-              remove: () => {
-                deleteStmt(i)
-                renderTree()
-              },
-            }}>
-            <BlockLine
-              key={`lineof ${stmt.id}`}
-              error={error}
-              index={i}
-              stmt={stmt}
-              parent={props.parent}
-            />
-          </BlockStmtCtx>
+          <BlockLine
+            key={`lineof ${childId}`}
+            error={error}
+            index={i}
+            childId={childId}
+            disabled={disabled}
+          />
         )
       })}
-      {props.main && <BlockLine index={props.stmt.children.length} />}
+      {main && <BlockLine index={opt.stmts.length} disabled />}
     </div>
   )
 }
@@ -147,23 +125,26 @@ export function BlockStmtComp(
 function BlockLine({
   error,
   index,
-  stmt,
-  parent,
+  childId,
+  disabled,
 }: {
   error?: EvalError
   index: number
-  stmt?: Stmt
-  parent?: Stmt
+  childId?: StmtId
+  disabled: boolean
 }) {
-  const { text = 'text-slate-400' } = parent
-    ? getStmtGroupColor(parent.name)
-    : {}
+  const handleUnlock = () => {
+    if (childId == null) return
+    useTreeStore.getState().detachStmt(childId)
+    // useTreeStore.getState().moveStmt(childId)
+  }
+
   return (
     <div className='relative flex items-start gap-2 h-fit not-hover:[&>button]:hidden'>
       <div
         className={clsx(
           'absolute top-0 -left-8 w-6 h-7 flex items-center justify-end text-right text-sm font-mono select-none pt-1',
-          text,
+          'text-slate-400',
         )}>
         {error ? (
           <IconExclamationCircleFilled
@@ -174,9 +155,14 @@ function BlockLine({
           <span>{index + 1}</span>
         )}
       </div>
-      {stmt ? (
-        <LocationProvider location={{ index: index, stmt: stmt.name }}>
-          <StmtComp key={stmt.id} stmt={stmt} disabled={false} />
+      {childId ? (
+        <LocationProvider location={{ index: index, stmt: Statements.Stmt }}>
+          <StmtComp
+            key={childId}
+            id={childId}
+            disabled={disabled}
+            onUnlock={handleUnlock}
+          />
         </LocationProvider>
       ) : (
         <span className='text-slate-400 font-mono'>

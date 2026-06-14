@@ -1,18 +1,17 @@
 import { useTransformContext } from 'react-zoom-pan-pinch'
 import { ExprComp } from './blocks/expressions/expr'
-import { BlockStmtComp } from './blocks/statements/block'
-import { Expr } from '../lib/blocks/expressions'
 import { StmtComp } from './blocks/statements/stmt'
-import { useRootStmt } from '../stores/root-stmt'
+import { BlockStmtComp } from './blocks/statements/block'
 import { useBlockDrag, useBlockDragPositions } from '../hooks/block-drag'
 import { useCurrentDrag, useDrag } from '../hooks/drag'
 import { DragSkeleton } from './blocks/ui/skeletons/drag-skeleton'
-import { RenderTreeCtx } from '../contexts/render-tree'
+import { useTreeStore } from '../stores/tree-store'
+import type { ExprId } from '../lib/ui/exprs'
+import type { StmtId } from '../lib/ui/stmts'
 
 export function Board() {
-  const stmt = useRootStmt((state) => state.stmt)
-  const reload = useRootStmt((state) => state.reload)
-  const { add, move, find } = useBlockDrag()
+  const rootId = useTreeStore((s) => s.rootId)
+  const { add, move, has } = useBlockDrag()
   const data = useCurrentDrag()
   const { end } = useDrag()
   const { state } = useTransformContext()
@@ -27,18 +26,19 @@ export function Board() {
     end()
 
     if (data == null) return
-    const obj = data.obj
 
     const { positionX, positionY, scale } = state
 
     const x = (positionX - ev.clientX + data.pickPosition.x + 0) / scale
     const y = (positionY - ev.clientY + data.pickPosition.y + 64) / scale
 
-    if (find(obj.id) == null) {
+    const dragId = data.id
+
+    if (!has(dragId)) {
       data.unlock()
-      add(obj, x, y)
+      add(dragId, x, y)
     } else {
-      move(obj.id, x, y)
+      move(dragId, x, y)
     }
   }
 
@@ -50,24 +50,37 @@ export function Board() {
       onDrop={handleDrop}>
       <DragSkeleton />
       <BlockDrags />
-      <RenderTreeCtx value={() => reload()}>
-        <BlockStmtComp stmt={stmt} main fit disabled={false} />
-      </RenderTreeCtx>
+      <BlockStmtComp id={rootId} main fit disabled={false} />
     </main>
   )
 }
 
 function BlockDrags() {
   const positions = useBlockDragPositions()
-  const { replace } = useBlockDrag()
+  const stmts = useTreeStore((s) => s.stmts)
+  const exprs = useTreeStore((s) => s.exprs)
 
-  return positions.map(({ block, x, y }) => (
-    <RenderTreeCtx key={block.id} value={() => replace(block.copy())}>
-      {block instanceof Expr ? (
-        <ExprComp expr={block} position={{ x: -x, y: -y }} disabled={false} />
-      ) : (
-        <StmtComp stmt={block} position={{ x: -x, y: -y }} disabled={false} />
-      )}
-    </RenderTreeCtx>
-  ))
+  return positions.map(({ id, x, y }) => {
+    if (id in exprs) {
+      return (
+        <ExprComp
+          key={id}
+          id={id as ExprId}
+          position={{ x: -x, y: -y }}
+          disabled={false}
+        />
+      )
+    }
+    if (id in stmts) {
+      return (
+        <StmtComp
+          key={id}
+          id={id as StmtId}
+          position={{ x: -x, y: -y }}
+          disabled={false}
+        />
+      )
+    }
+    return null
+  })
 }

@@ -36,7 +36,11 @@ export function StmtSkeleton({ stmt }: { stmt: Stmt }) {
 
   if (stmt instanceof BlockStmt) {
     return (
-      <div className={clsx('flex flex-col gap-1', stmt.children.length > 0 && 'pl-4 border-l-2 border-slate-300')}>
+      <div
+        className={clsx(
+          'flex flex-col gap-1',
+          stmt.children.length > 0 && 'pl-4 border-l-2 border-slate-300',
+        )}>
         {stmt.children.length > 0 ? (
           stmt.children.map((child, i) => (
             <StmtSkeleton key={child.id || i} stmt={child} />
@@ -84,7 +88,7 @@ export function StmtSkeleton({ stmt }: { stmt: Stmt }) {
           <span>entonces</span>
         </div>
         <div className='ml-4 border-l-2 border-slate-300 pl-2'>
-          <StmtSkeleton stmt={stmt.thenBody} />
+          <StmtSkeleton stmt={stmt.body} />
         </div>
       </div>
     )
@@ -153,7 +157,9 @@ export function StmtSkeleton({ stmt }: { stmt: Stmt }) {
       <div>
         <div className={clsx(blockClass, 'rounded-b-none flex-wrap')}>
           <span>para</span>
-          <span className='bg-white/50 rounded px-1'>{stmt.identifier || 'i'}</span>
+          <span className='bg-white/50 rounded px-1'>
+            {stmt.identifier || 'i'}
+          </span>
           <span>desde</span>
           <SlotExpr expr={stmt.start.get()} />
           <span>hasta</span>
@@ -201,7 +207,11 @@ export function StmtSkeleton({ stmt }: { stmt: Stmt }) {
   )
 }
 
-function SlotExpr({ expr }: { expr: import('../../../../lib/blocks/expressions').Expr | null }) {
+function SlotExpr({
+  expr,
+}: {
+  expr: import('../../../../lib/blocks/expressions').Expr | null
+}) {
   if (expr) return <ExprSkeleton expr={expr} />
   return (
     <span className='inline-block min-w-8 h-5 rounded border border-dashed border-slate-300 bg-slate-50' />

@@ -4,6 +4,7 @@ import { Statements } from '../enum'
 import { statementsClasses } from '../records/classes'
 import { Expr } from '../../expressions'
 import type { FieldMap } from '../../shared/field-types'
+import type { VisitorStmt } from '../../shared/visitor'
 
 export class Stmt {
   static __fields: FieldMap = {}
@@ -36,10 +37,12 @@ export class Stmt {
         shape[key] = config.kind === 'scalar' ? config.schema : z.unknown()
       }
     }
-    return z.object({
-      id: z.string(),
-      name: z.enum(Object.values(Statements) as [string, ...string[]]),
-    }).extend(shape) as any
+    return z
+      .object({
+        id: z.string(),
+        name: z.enum(Object.values(Statements) as [string, ...string[]]),
+      })
+      .extend(shape) as any
   }
 
   toString(): string {
@@ -50,7 +53,9 @@ export class Stmt {
     if (this === Stmt) {
       const { data } = z.object({ name: z.string() }).safeParse(rawConfig)
       if (data == null) return null
-      const cls = (statementsClasses as Record<string, typeof Stmt | undefined>)[data.name]
+      const cls = (
+        statementsClasses as Record<string, typeof Stmt | undefined>
+      )[data.name]
       if (cls == null) return null
       return cls.createFrom(rawConfig)
     }
@@ -63,9 +68,9 @@ export class Stmt {
     for (const { fields } of this._walkFields()) {
       for (const [key, config] of Object.entries(fields)) {
         if (config.kind === 'scalar') {
-          (instance as any)[key] = data[key]
+          ;(instance as any)[key] = data[key]
         } else if (config.kind === 'expr-container') {
-          (instance as any)[key]._expr = Expr.createFrom(data[key])
+          ;(instance as any)[key]._expr = Expr.createFrom(data[key])
         } else if (config.kind === 'block-stmt') {
           const body = statementsClasses[Statements.Block].createFrom(data[key])
           if (body == null) return null
@@ -99,9 +104,14 @@ export class Stmt {
     const chain: { fields: FieldMap }[] = []
     let ctor: typeof Stmt = this
     while (ctor && ctor.__fields) {
-      if (Object.keys(ctor.__fields).length > 0) chain.unshift({ fields: ctor.__fields })
+      if (Object.keys(ctor.__fields).length > 0)
+        chain.unshift({ fields: ctor.__fields })
       ctor = Object.getPrototypeOf(ctor) as typeof Stmt
     }
     return chain
+  }
+
+  accept(visitor: VisitorStmt): void {
+    visitor.visitStmt(this)
   }
 }

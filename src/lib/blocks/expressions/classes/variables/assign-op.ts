@@ -5,6 +5,7 @@ import { ExprContainer } from '../../../shared/classes/expr-container'
 import { Expressions } from '../../enum'
 import { Expr } from '../expr'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorExpr } from '../../../shared/visitor'
 
 export enum AssignOp {
   AddAssign = '+=',
@@ -39,8 +40,16 @@ export class AssignOpExpr extends Expr {
 
   type = PrimaryType.number
 
-  changeIdentifier(identifier: string) { this.identifier = identifier }
-  changeOperator(operator: AssignOp) { this.operator = operator }
+  changeIdentifier(identifier: string) {
+    this.identifier = identifier
+  }
+  changeOperator(operator: AssignOp) {
+    this.operator = operator
+  }
+
+  accept(visitor: VisitorExpr): void {
+    visitor.visitAssignOpExpr(this)
+  }
 
   toString(): string {
     return `${this.identifier} ${this.operator} ${this.expression.get()?.toString() ?? '?'}`

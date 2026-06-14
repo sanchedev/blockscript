@@ -4,6 +4,7 @@ import { Expr } from '../expr'
 import { PrimaryType } from '../../../../types'
 import { ExprContainer } from '../../../shared/classes/expr-container'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorExpr } from '../../../shared/visitor'
 
 export class ToNumberExpr extends Expr {
   static default = new ToNumberExpr()
@@ -23,6 +24,10 @@ export class ToNumberExpr extends Expr {
   expression = new ExprContainer(this)
 
   type = PrimaryType.number
+
+  accept(visitor: VisitorExpr): void {
+    visitor.visitToNumberExpr(this)
+  }
 
   toString(): string {
     return `numero(${this.expression.get()?.toString() ?? '?'})`

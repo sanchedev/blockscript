@@ -1,26 +1,27 @@
 import clsx from 'clsx'
 import { useTransformContext } from 'react-zoom-pan-pinch'
 import { useCurrentDrag, useDrag } from '../../../hooks/drag'
-import { Stmt } from '../../../lib/blocks/statements'
-import { Expr } from '../../../lib/blocks/expressions'
 import { useEffect, useState, type RefAttributes } from 'react'
 import { ContextMenu, type ContextMenuOption } from '../../ui/context-menu'
 import { currentDragPosition } from '../../../lib/event/events'
+import type { DragBlockId } from '../../../stores/block-drag-store'
 
 export interface BlockDragElement
   extends React.HTMLAttributes<HTMLDivElement>, RefAttributes<HTMLDivElement> {}
 
 interface BlockDragProps extends BlockDragElement {
-  obj: Stmt | Expr
+  dragId: DragBlockId
   disabled?: boolean
   onRemove: () => void
+  onUnlock?: () => void
   contextMenuOptions: ContextMenuOption[]
 }
 
 export function BlockDrag({
-  obj,
+  dragId,
   disabled = false,
   onRemove,
+  onUnlock,
   contextMenuOptions,
   className,
   children,
@@ -31,23 +32,20 @@ export function BlockDrag({
 
   const { state } = useTransformContext()
 
-  const type = obj instanceof Expr ? 'expr' : 'stmt'
-  const id = `${type}=${obj.id}`
-
   const move = ({ x, y }: { x: number; y: number }) => {
     currentDragPosition.emit(x, y)
   }
 
   const handleDragStart = (ev: React.DragEvent) => {
     ev.stopPropagation()
-    ev.dataTransfer.setData('text/plain', id)
+    ev.dataTransfer.setData('text/plain', dragId)
     ev.dataTransfer.setDragImage(new Image(), 0, 0)
     const { left, top } = ev.currentTarget.getBoundingClientRect()
     start({
-      obj,
+      id: dragId,
       pickPosition: { x: ev.clientX - left, y: ev.clientY - top },
       unlock: () => {
-        onRemove()
+        ;(onUnlock ?? onRemove)()
       },
     })
     move(calcPos(left, top))
@@ -86,7 +84,7 @@ export function BlockDrag({
     if (ev.target == null) return
     if (ev.target instanceof HTMLElement) {
       if (ev.target instanceof HTMLInputElement) return
-      if (!detectElement(ev.target, id)) return
+      if (!detectElement(ev.target, dragId)) return
       if (!detectIsForMe(ev.target, ev.currentTarget as HTMLElement)) return
     }
 
@@ -98,7 +96,7 @@ export function BlockDrag({
     const handleClick = (ev: PointerEvent) => {
       const el = ev.target
       if (el == null) return
-      if (el instanceof HTMLElement && detectElement(el, id)) return
+      if (el instanceof HTMLElement && detectElement(el, dragId)) return
       setMenuOpen(false)
     }
     document.addEventListener('click', handleClick)
@@ -107,15 +105,15 @@ export function BlockDrag({
       document.removeEventListener('click', handleClick)
       document.removeEventListener('contextmenu', handleClick)
     }
-  }, [contextMenuOptions, id])
+  }, [contextMenuOptions, dragId])
 
   return (
     <div
-      id={id}
+      id={dragId}
       draggable={iS(true)}
       className={clsx(
         'blockdrag locked',
-        data?.obj.id === obj.id && 'opacity-0',
+        data?.id === dragId && 'opacity-0',
         className,
       )}
       onDragStart={iS(handleDragStart)}
@@ -123,7 +121,7 @@ export function BlockDrag({
       onDragEnd={iS(handleDragEnd)}
       onContextMenu={handleContextMenu}
       {...rest}>
-      {menuOpen && <ContextMenu id={id} options={contextMenuOptions} />}
+      {menuOpen && <ContextMenu id={dragId} options={contextMenuOptions} />}
       {children}
     </div>
   )

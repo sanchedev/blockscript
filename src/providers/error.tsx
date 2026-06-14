@@ -1,13 +1,12 @@
-import { useEffect, useEffectEvent, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ErrorCtx } from '../contexts/error'
 import { type EvalError, type Location } from '../lib/errors'
 import { Validator } from '../lib/validator/validator'
-import { editorChanged } from '../lib/event/events'
 import type { ExportedDefineds } from '../lib/validator/defineds'
-import { useRootStmt } from '../stores/root-stmt'
+import { buildTree } from '../lib/ui/build-tree'
+import { useTreeStore } from '../stores/tree-store'
 
 export function ErrorProvider(props: React.PropsWithChildren) {
-  const stmt = useRootStmt((state) => state.stmt)
   const [errors, setErrors] = useState<EvalError[]>([])
   const [defineds, setDefineds] = useState<ExportedDefineds>({
     vars: new Map(),
@@ -36,16 +35,13 @@ export function ErrorProvider(props: React.PropsWithChildren) {
 
   const validate = () => {
     const validator = new Validator()
-    setErrors(validator.validate(stmt.children))
+    setErrors(validator.validate(buildTree()))
     setDefineds(validator.defineds.export())
   }
 
-  const onEditorChange = useEffectEvent(() => {
-    validate()
-  })
-
   useEffect(() => {
-    editorChanged.on(onEditorChange)
+    const unsub = useTreeStore.subscribe(validate)
+    return () => unsub()
   }, [])
 
   return (

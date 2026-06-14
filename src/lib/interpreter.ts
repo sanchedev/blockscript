@@ -8,6 +8,7 @@ import {
   IncrementExpr,
 } from './blocks/expressions/classes/variables/increment'
 import {
+  BlockStmt,
   BreakStmt,
   ContinueStmt,
   ElseIfStmt,
@@ -97,10 +98,13 @@ export class Interpreter {
     }
   }
 
-  async interpret(statements: Stmt[], signal?: AbortSignal): Promise<InterpretResult> {
+  async interpret(
+    block: BlockStmt,
+    signal?: AbortSignal,
+  ): Promise<InterpretResult> {
     this.#signal = signal
     const validator = new Validator()
-    const errors = validator.validate(statements)
+    const errors = validator.validate(block)
     if (errors.length > 0) {
       return { output: null, errors }
     }
@@ -108,7 +112,7 @@ export class Interpreter {
     const env: Environment = { vars: new Map() }
 
     try {
-      await this.executeStatements(statements, env)
+      await this.executeStatements(block.children, env)
     } catch (error) {
       return { output: null, errors: [error as EvalError] }
     }
@@ -174,7 +178,7 @@ export class Interpreter {
       await this.evaluateExprContainer(stmt.condition, env),
     )
     if (conditionValue) {
-      await this.executeStatements(stmt.thenBody.children, env)
+      await this.executeStatements(stmt.body.children, env)
     }
     let hasExecuted = conditionValue
     while (this.peek() instanceof ElseIfStmt) {
@@ -275,11 +279,14 @@ export class Interpreter {
             location: [...this.currentLocation],
           } as EvalError)
         }
-        if (signal.aborted) { onAbort(); return }
+        if (signal.aborted) {
+          onAbort()
+          return
+        }
         signal.addEventListener('abort', onAbort, { once: true })
       })
     } else {
-      await new Promise(resolve => setTimeout(resolve, duration))
+      await new Promise((resolve) => setTimeout(resolve, duration))
     }
   }
 

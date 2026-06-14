@@ -5,6 +5,7 @@ import { PrimaryType } from '../../../../types'
 import { ExprContainer } from '../../../shared/classes/expr-container'
 import { ErrorType } from '../../../../errors'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorExpr } from '../../../shared/visitor'
 
 export enum BinaryOp {
   Add = '+',
@@ -49,7 +50,13 @@ export class BinaryExpr extends Expr {
 
   type = PrimaryType.number
 
-  changeOperator(operator: BinaryOp) { this.operator = operator }
+  changeOperator(operator: BinaryOp) {
+    this.operator = operator
+  }
+
+  accept(visitor: VisitorExpr): void {
+    visitor.visitBinaryExpr(this)
+  }
 
   toString(): string {
     return `${this.left.get()?.toString() ?? '?'} ${this.operator} ${this.right.get()?.toString() ?? '?'}`

@@ -5,6 +5,7 @@ import { PrimaryType } from '../../../../types'
 import { ExprContainer } from '../../../shared/classes/expr-container'
 import { ErrorType } from '../../../../errors'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorExpr } from '../../../shared/visitor'
 
 export enum BinaryCompOp {
   Gt = '>',
@@ -74,6 +75,10 @@ export class BinaryCompExpr extends Expr {
 
   changeOperator(operator: BinaryCompOp) {
     this.operator = operator
+  }
+
+  accept(visitor: VisitorExpr): void {
+    visitor.visitBinaryCompExpr(this)
   }
 
   toString(): string {

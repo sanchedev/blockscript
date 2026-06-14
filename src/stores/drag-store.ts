@@ -1,9 +1,8 @@
 import { create } from 'zustand'
-import type { Stmt } from '../lib/blocks/statements'
-import type { Expr } from '../lib/blocks/expressions'
+import type { DragBlockId } from './block-drag-store'
 
 interface DragData {
-  obj: Stmt | Expr
+  id: DragBlockId
   pickPosition: { x: number; y: number }
   unlock(): void
 }

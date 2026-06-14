@@ -4,6 +4,7 @@ import { ExprContainer } from '../../../shared/classes/expr-container'
 import { Stmt } from '../stmt'
 import { Statements } from '../../enum'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorStmt } from '../../../shared/visitor'
 
 export class WaitStmt extends Stmt {
   static default = new WaitStmt()
@@ -21,6 +22,10 @@ export class WaitStmt extends Stmt {
     requiredMsg: 'No se ha establecido un tiempo de espera',
   })
   duration = new ExprContainer(this)
+
+  accept(visitor: VisitorStmt): void {
+    visitor.visitWaitStmt(this)
+  }
 
   toString(): string {
     return `esperar ${this.duration.get()?.toString() ?? '?'} ms`

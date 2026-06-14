@@ -1,26 +1,40 @@
-import type { ConcatExpr } from '../../../../lib/blocks/expressions'
-import type { ExprCompProps } from '../types'
+import { useExprValue } from '../../../../hooks/tree'
+import type { ExprId } from '../../../../lib/ui/exprs'
+import { Expressions } from '../../../../lib/blocks/expressions/enum'
 import { typeStyles } from '../../../../lib/type-styles'
-import { ExprContainerComp } from '../../ui/expr-container'
 import clsx from 'clsx'
+import { ExprField } from '../../ui/expr-field'
 
-export function ConcatExprComp(props: ExprCompProps<ConcatExpr>) {
+export function ConcatExprComp({
+  id,
+  disabled,
+}: {
+  id: ExprId
+  disabled: boolean
+}) {
+  const [opt] = useExprValue(id)
+  if (opt == null || opt.name !== Expressions.Concat) return null
+
   return (
     <div
       className={clsx(
         'border-x-2 rounded-lg font-mono flex items-center gap-1 px-1 h-6 shadow',
-        typeStyles(props.expr.type).bg,
-        typeStyles(props.expr.type).border,
-        typeStyles(props.expr.type).text,
+        typeStyles(opt.type).bg,
+        typeStyles(opt.type).border,
+        typeStyles(opt.type).text,
       )}>
-      <ExprContainerComp
-        container={props.expr.left}
-        disabled={props.disabled}
+      <ExprField
+        exprId={opt.left}
+        parentId={id}
+        field='left'
+        disabled={disabled}
       />
       <span>+</span>
-      <ExprContainerComp
-        container={props.expr.right}
-        disabled={props.disabled}
+      <ExprField
+        exprId={opt.right}
+        parentId={id}
+        field='right'
+        disabled={disabled}
       />
     </div>
   )

@@ -2,6 +2,7 @@
 import z from 'zod'
 import { Statements } from '../enum'
 import { Stmt } from './stmt'
+import type { VisitorStmt } from '../../shared/visitor'
 
 export class BlockStmt extends Stmt {
   static default = new BlockStmt()
@@ -33,8 +34,16 @@ export class BlockStmt extends Stmt {
     }
     return blockStmt
   }
+
+  accept(visitor: VisitorStmt): void {
+    visitor.visitBlockStmt(this)
+  }
+
   toString(): string {
-    return `{ ${this.children.filter(Boolean).map(c => c.toString()).join('; ')} }`
+    return `{ ${this.children
+      .filter(Boolean)
+      .map((c) => c.toString())
+      .join('; ')} }`
   }
 
   export() {

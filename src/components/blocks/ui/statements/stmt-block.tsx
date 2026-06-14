@@ -1,13 +1,13 @@
 import clsx from 'clsx'
 import { getStmtGroupColor } from '../../../../lib/blocks/statements/records/groups'
-import type { Stmt } from '../../../../lib/blocks/statements'
+import type { Statements } from '../../../../lib/blocks/statements/enum'
 
 interface StmtBlockProps extends React.HTMLAttributes<HTMLDivElement> {
-  stmt: Stmt
+  name: string
 }
 
-export function StmtBlock({ stmt, ...props }: StmtBlockProps) {
-  const styles = getStmtGroupColor(stmt.name)
+export function StmtBlock({ name, ...props }: StmtBlockProps) {
+  const styles = getStmtGroupColor(name as Statements)
 
   return (
     <div

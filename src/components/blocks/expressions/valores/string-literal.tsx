@@ -1,35 +1,37 @@
-import type { StringLiteralExpr } from '../../../../lib/blocks/expressions'
-import type { ExprCompProps } from '../types'
+import { useExprValue } from '../../../../hooks/tree'
+import type { ExprId, StringExprOpt } from '../../../../lib/ui/exprs'
+import { Expressions } from '../../../../lib/blocks/expressions/enum'
 import { Input } from '../../ui/input'
 import clsx from 'clsx'
 import { typeStyles } from '../../../../lib/type-styles'
-import { useRenderTree } from '../../../../hooks/render-tree'
 
-export function StringLiteralExprComp(props: ExprCompProps<StringLiteralExpr>) {
-  const renderTree = useRenderTree()
+export function StringLiteralExprComp({ id, disabled }: { id: ExprId; disabled: boolean }) {
+  const [expr, setExpr] = useExprValue(id)
+
+  if (expr == null || expr.name !== Expressions.StringLiteral) return null
+  const opt = expr as StringExprOpt
 
   const handleChange = (value: string) => {
-    props.expr.edit(value)
-    renderTree()
+    setExpr({ ...expr, literal: value })
   }
 
   return (
     <label
       className={clsx(
         "flex border-x-2 px-0.5 rounded-lg font-mono before:content-['\"'] after:content-['\"'] w-fit h-6 has-focus-visible:ring-2 shadow",
-        typeStyles(props.expr.type).text,
-        typeStyles(props.expr.type).bg,
-        typeStyles(props.expr.type).border,
-        typeStyles(props.expr.type).ring,
+        typeStyles(opt.type).text,
+        typeStyles(opt.type).bg,
+        typeStyles(opt.type).border,
+        typeStyles(opt.type).ring,
       )}>
       <Input
         autoFocus
         autoComplete='off'
         className={clsx('p-0 outline-0 w-full text-sm min-w-12')}
-        value={props.expr.literal}
+        value={opt.literal}
         onChange={(e) => handleChange(e.target.value)}
-        style={{ width: props.expr.literal.length + 'ch' }}
-        disabled={props.disabled}
+        style={{ width: opt.literal.length + 'ch' }}
+        disabled={disabled}
       />
     </label>
   )

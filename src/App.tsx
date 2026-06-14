@@ -4,9 +4,11 @@ import { Entry } from './components/entry'
 import { Header } from './components/header'
 import { ErrorProvider } from './providers/error'
 import { OutputProvider } from './providers/output'
-import { exportSavedFile, loadSavedFile } from './lib/serializer/saved-file'
-import { useRootStmt } from './stores/root-stmt'
 import { useBlockDragStore } from './stores/block-drag-store'
+import { useTreeStore } from './stores/tree-store'
+import { exportStoreFile, importStoreFile } from './lib/serializer/store-file'
+
+const SAVE_KEY = 'blockscript-save'
 
 function Persist() {
   const initialized = useRef(false)
@@ -15,19 +17,16 @@ function Persist() {
     if (initialized.current) return
     initialized.current = true
     try {
-      const raw = localStorage.getItem('blockscript-save')
+      const raw = localStorage.getItem(SAVE_KEY)
       if (!raw) return
-      const saved = loadSavedFile(JSON.parse(raw))
-      if (saved.root) {
-        useRootStmt.getState().setStmt(saved.root)
-      }
-      if (saved.scatteredStmts.length > 0 || saved.scatteredExprs.length > 0) {
-        useBlockDragStore.setState({
-          positions: [...saved.scatteredStmts, ...saved.scatteredExprs],
-        })
+      const data = JSON.parse(raw)
+      if (data.version === 1) {
+        importStoreFile(data)
+      } else {
+        throw new Error('Legacy format')
       }
     } catch {
-      /* corrupto → estado nuevo */
+      localStorage.removeItem(SAVE_KEY)
     }
   }, [])
 
@@ -36,17 +35,15 @@ function Persist() {
     const save = () => {
       clearTimeout(timer)
       timer = setTimeout(() => {
-        const root = useRootStmt.getState().stmt
-        const positions = useBlockDragStore.getState().positions
-        const data = exportSavedFile(root, positions)
-        localStorage.setItem('blockscript-save', JSON.stringify(data))
+        const data = exportStoreFile()
+        localStorage.setItem(SAVE_KEY, JSON.stringify(data))
       }, 5000)
     }
-    const unsubRoot = useRootStmt.subscribe(save)
-    const unsubBlocks = useBlockDragStore.subscribe(save)
+    const unsubTree = useTreeStore.subscribe(save)
+    const unsubDrag = useBlockDragStore.subscribe(save)
     return () => {
-      unsubRoot()
-      unsubBlocks()
+      unsubTree()
+      unsubDrag()
       clearTimeout(timer)
     }
   }, [])

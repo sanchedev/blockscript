@@ -4,6 +4,7 @@ import { PrimaryType, type Type } from '../../../types'
 import { Expressions } from '../enum'
 import { expressionsClasses } from '../records/classes'
 import type { FieldMap } from '../../shared/field-types'
+import type { VisitorExpr } from '../../shared/visitor'
 
 export class Expr {
   static __fields: FieldMap = {}
@@ -37,10 +38,12 @@ export class Expr {
         shape[key] = config.kind === 'scalar' ? config.schema : z.unknown()
       }
     }
-    return z.object({
-      id: z.string(),
-      name: z.enum(Object.values(Expressions) as [string, ...string[]]),
-    }).extend(shape) as any
+    return z
+      .object({
+        id: z.string(),
+        name: z.enum(Object.values(Expressions) as [string, ...string[]]),
+      })
+      .extend(shape) as any
   }
 
   toString(): string {
@@ -51,7 +54,9 @@ export class Expr {
     if (this === Expr) {
       const { data } = z.object({ name: z.string() }).safeParse(rawConfig)
       if (data == null) return null
-      const cls = (expressionsClasses as Record<string, typeof Expr | undefined>)[data.name]
+      const cls = (
+        expressionsClasses as Record<string, typeof Expr | undefined>
+      )[data.name]
       if (cls == null) return null
       return cls.createFrom(rawConfig)
     }
@@ -64,9 +69,9 @@ export class Expr {
     for (const { fields } of this._walkFields()) {
       for (const [key, config] of Object.entries(fields)) {
         if (config.kind === 'scalar') {
-          (instance as any)[key] = data[key]
+          ;(instance as any)[key] = data[key]
         } else if (config.kind === 'expr-container') {
-          (instance as any)[key]._expr = Expr.createFrom(data[key])
+          ;(instance as any)[key]._expr = Expr.createFrom(data[key])
         }
       }
     }
@@ -94,9 +99,14 @@ export class Expr {
     const chain: { fields: FieldMap }[] = []
     let ctor: typeof Expr = this
     while (ctor && ctor.__fields) {
-      if (Object.keys(ctor.__fields).length > 0) chain.unshift({ fields: ctor.__fields })
+      if (Object.keys(ctor.__fields).length > 0)
+        chain.unshift({ fields: ctor.__fields })
       ctor = Object.getPrototypeOf(ctor) as typeof Expr
     }
     return chain
+  }
+
+  accept(visitor: VisitorExpr): void {
+    visitor.visitExpr(this)
   }
 }

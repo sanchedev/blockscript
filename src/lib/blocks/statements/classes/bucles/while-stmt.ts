@@ -5,6 +5,7 @@ import { Stmt } from '../stmt'
 import { Statements } from '../../enum'
 import { BlockStmt } from '../block-stmt'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorStmt } from '../../../shared/visitor'
 
 export class WhileStmt extends Stmt {
   static default = new WhileStmt()
@@ -25,6 +26,10 @@ export class WhileStmt extends Stmt {
 
   @field.blockStmt()
   body: BlockStmt = new BlockStmt()
+
+  accept(visitor: VisitorStmt): void {
+    visitor.visitWhileStmt(this)
+  }
 
   toString(): string {
     return `mientras ${this.condition.get()?.toString() ?? '?'} hacer ${this.body.toString()}`

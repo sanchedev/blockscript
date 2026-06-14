@@ -4,6 +4,7 @@ import { PrimaryType } from '../../../../types'
 import { ExprContainer } from '../../../shared/classes/expr-container'
 import { ErrorType } from '../../../../errors'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorExpr } from '../../../shared/visitor'
 
 export class ReadExpr extends Expr {
   static default = new ReadExpr()
@@ -23,6 +24,10 @@ export class ReadExpr extends Expr {
   prompt = new ExprContainer(this)
 
   type = PrimaryType.string
+
+  accept(visitor: VisitorExpr): void {
+    visitor.visitReadExpr(this)
+  }
 
   toString(): string {
     return `leer(${this.prompt.get()?.toString() ?? '?'})`

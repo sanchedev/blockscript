@@ -66,7 +66,8 @@ export class Validator {
     this.#addError(info.type, info.message)
   }
 
-  validate(statements: Stmt[]): EvalError[] {
+  validate(block: BlockStmt): EvalError[] {
+    const statements = block.children
     for (let i = 0; i < statements.length; i++) {
       const stmt = statements[i]
       if (stmt == null) continue
@@ -103,7 +104,7 @@ export class Validator {
         this.#validateExprContainer(stmt.expression)
       } else if (stmt instanceof IfStmt) {
         this.#validateExprContainer(stmt.condition)
-        this.#validateBlock(stmt.thenBody)
+        this.#validateBlock(stmt.body)
 
         while (statements[i + 1] instanceof ElseIfStmt) {
           const stmt = statements[next()] as ElseIfStmt
@@ -137,15 +138,19 @@ export class Validator {
         this.#validateExprContainer(stmt.end)
         this.#validateExprContainer(stmt.step)
 
-        this.#validateBlock(stmt.body, (validator) => {
-          if (stmt.identifier !== '') {
-            validator.defineds.define(
-              stmt.identifier,
-              PrimaryType.number,
-              this.#locationPath.map((l) => l.index),
-            )
-          }
-        }, true)
+        this.#validateBlock(
+          stmt.body,
+          (validator) => {
+            if (stmt.identifier !== '') {
+              validator.defineds.define(
+                stmt.identifier,
+                PrimaryType.number,
+                this.#locationPath.map((l) => l.index),
+              )
+            }
+          },
+          true,
+        )
       } else if (stmt instanceof WaitStmt) {
         this.#validateExprContainer(stmt.duration)
       } else if (stmt instanceof BreakStmt || stmt instanceof ContinueStmt) {
@@ -171,7 +176,7 @@ export class Validator {
     const depth = enterLoop ? this.#loopDepth + 1 : this.#loopDepth
     const validator = new Validator(this.defineds, this.#locationPath, edit)
     validator.#loopDepth = depth
-    this.#errors.push(...validator.validate(block.children))
+    this.#errors.push(...validator.validate(block))
   }
 
   #validateExprContainer<T extends Expr | Stmt>(container: ExprContainer<T>) {

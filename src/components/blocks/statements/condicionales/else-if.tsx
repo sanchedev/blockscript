@@ -1,24 +1,25 @@
-import type { StmtCompProps } from '../types'
-import type { ElseIfStmt } from '../../../../lib/blocks/statements'
-import { ExprContainerComp } from '../../ui/expr-container'
+import { useStmtValue } from '../../../../hooks/tree'
+import type { StmtId } from '../../../../lib/ui/stmts'
+import { Statements } from '../../../../lib/blocks/statements/enum'
+import { ExprField } from '../../ui/expr-field'
 import { StmtWithBlock } from '../../ui/statements/stmt-with-block'
 
-export function ElseIfStmtComp(props: StmtCompProps<ElseIfStmt>) {
+export function ElseIfStmtComp({ id, disabled }: { id: StmtId; disabled: boolean }) {
+  const [opt] = useStmtValue(id)
+  if (opt == null || opt.name !== Statements.ElseIf) return null
+
   return (
     <StmtWithBlock
-      stmt={props.stmt}
+      name={opt.name}
       top={
         <>
           <span>o si</span>
-          <ExprContainerComp
-            container={props.stmt.condition}
-            disabled={props.disabled}
-          />
+          <ExprField exprId={opt.condition} parentId={id} field="condition" disabled={disabled} />
           <span>entonces</span>
         </>
       }
-      block={props.stmt.body}
-      disabled={props.disabled}
+      bodyId={opt.body}
+      disabled={disabled}
     />
   )
 }

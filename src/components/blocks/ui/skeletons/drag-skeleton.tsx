@@ -23,7 +23,7 @@ export function DragSkeleton() {
 
   return (
     <Skeleton
-      obj={data.obj}
+      id={data.id}
       position={{ x, y }}
       className='opacity-100 z-20 pointer-events-none'
     />

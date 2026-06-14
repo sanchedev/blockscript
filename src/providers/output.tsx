@@ -3,10 +3,9 @@ import { OutputCtx } from '../contexts/output'
 import { Interpreter, type InterpretResult } from '../lib/interpreter'
 import type { EvalError } from '../lib/errors'
 import { useConsoleStore } from '../stores/console-store'
-import { useRootStmt } from '../stores/root-stmt'
+import { buildTree } from '../lib/ui/build-tree'
 
 export function OutputProvider(props: React.PropsWithChildren) {
-  const stmt = useRootStmt((state) => state.stmt)
 
   const [result, setResult] = useState<InterpretResult | null>(null)
   const [isRunning, setIsRunning] = useState(false)
@@ -38,7 +37,8 @@ export function OutputProvider(props: React.PropsWithChildren) {
 
     try {
       const startTime = performance.now()
-      const finalResult = await interpreter.interpret(stmt.children, signal)
+      const stmt = buildTree()
+      const finalResult = await interpreter.interpret(stmt, signal)
       const endTime = performance.now()
       setTime(endTime - startTime)
       if (finalResult.errors) {

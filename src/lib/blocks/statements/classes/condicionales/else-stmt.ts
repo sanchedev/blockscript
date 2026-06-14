@@ -2,6 +2,7 @@ import { Stmt } from '../stmt'
 import { Statements } from '../../enum'
 import { BlockStmt } from '../block-stmt'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorStmt } from '../../../shared/visitor'
 
 export class ElseStmt extends Stmt {
   static default = new ElseStmt()
@@ -9,6 +10,10 @@ export class ElseStmt extends Stmt {
 
   @field.blockStmt()
   body: BlockStmt = new BlockStmt()
+
+  accept(visitor: VisitorStmt): void {
+    visitor.visitElseStmt(this)
+  }
 
   toString(): string {
     return `sino entonces ${this.body.toString()}`

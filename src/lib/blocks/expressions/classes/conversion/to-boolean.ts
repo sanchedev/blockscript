@@ -4,6 +4,7 @@ import { Expr } from '../expr'
 import { PrimaryType } from '../../../../types'
 import { ExprContainer } from '../../../shared/classes/expr-container'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorExpr } from '../../../shared/visitor'
 
 export class ToBooleanExpr extends Expr {
   static default = new ToBooleanExpr()
@@ -23,6 +24,10 @@ export class ToBooleanExpr extends Expr {
   expression = new ExprContainer(this)
 
   type = PrimaryType.boolean
+
+  accept(visitor: VisitorExpr): void {
+    visitor.visitToBooleanExpr(this)
+  }
 
   toString(): string {
     return `booleano(${this.expression.get()?.toString() ?? '?'})`

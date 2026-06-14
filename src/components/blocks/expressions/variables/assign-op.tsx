@@ -1,14 +1,12 @@
-import {
-  type AssignOpExpr,
-  AssignOp,
-} from '../../../../lib/blocks/expressions/classes/variables/assign-op'
-import type { ExprCompProps } from '../types'
+import { useExprValue } from '../../../../hooks/tree'
+import type { ExprId } from '../../../../lib/ui/exprs'
+import { Expressions } from '../../../../lib/blocks/expressions/enum'
+import { AssignOp } from '../../../../lib/blocks/expressions/classes/variables/assign-op'
 import { typeStyles } from '../../../../lib/type-styles'
-import { ExprContainerComp } from '../../ui/expr-container'
 import { VariableInput } from '../../ui/inputs/variable-input'
 import { Button } from '../../../ui/button'
+import { ExprField } from '../../ui/expr-field'
 import clsx from 'clsx'
-import { useRenderTree } from '../../../../hooks/render-tree'
 
 const operators = [
   AssignOp.AddAssign,
@@ -20,39 +18,46 @@ const operators = [
 
 const labels = ['Más', 'Menos', 'Por', 'Sobre', 'Módulo']
 
-export function AssignOpExprComp(props: ExprCompProps<AssignOpExpr>) {
-  const renderTree = useRenderTree()
+export function AssignOpExprComp({
+  id,
+  disabled,
+}: {
+  id: ExprId
+  disabled: boolean
+}) {
+  const [opt, setOpt] = useExprValue(id)
+  if (opt == null || opt.name !== Expressions.AssignOp) return null
 
   const handleChange = (value: string) => {
-    props.expr.changeIdentifier(value)
-    renderTree()
+    setOpt({ ...opt, identifier: value })
   }
 
   const handleOperatorChange = (value: string) => {
     const op = value as AssignOp
-    props.expr.changeOperator(op)
-    renderTree()
+    setOpt({ ...opt, operator: op })
   }
 
-  const operatorIndex = operators.indexOf(props.expr.operator)
+  const operatorIndex = operators.indexOf(opt.operator as AssignOp)
+
   return (
     <div
       className={clsx(
         'border-x-2 rounded-lg font-mono flex items-center gap-1 px-1 h-6 shadow text-sm',
-        typeStyles(props.expr.type).bg,
-        typeStyles(props.expr.type).border,
-        typeStyles(props.expr.type).text,
+        typeStyles(opt.type).bg,
+        typeStyles(opt.type).border,
+        typeStyles(opt.type).text,
       )}>
       <label
         className={clsx(
           'flex rounded-lg font-mono has-focus-visible:ring-2 h-6',
-          typeStyles(props.expr.type).text,
-          typeStyles(props.expr.type).bg,
-          typeStyles(props.expr.type).ring,
+          typeStyles(opt.type).text,
+          typeStyles(opt.type).bg,
+          typeStyles(opt.type).ring,
         )}>
         <VariableInput
-          identifier={props.expr.identifier}
+          identifier={opt.identifier}
           onIdentifierChange={handleChange}
+          disabled={disabled}
         />
       </label>
       <Button
@@ -66,12 +71,14 @@ export function AssignOpExprComp(props: ExprCompProps<AssignOpExpr>) {
             operators[(operatorIndex + 1) % operators.length],
           )
         }
-        disabled={props.disabled}>
-        {props.expr.operator}
+        disabled={disabled}>
+        {opt.operator}
       </Button>
-      <ExprContainerComp
-        container={props.expr.expression}
-        disabled={props.disabled}
+      <ExprField
+        exprId={opt.expr}
+        parentId={id}
+        field='expr'
+        disabled={disabled}
       />
     </div>
   )

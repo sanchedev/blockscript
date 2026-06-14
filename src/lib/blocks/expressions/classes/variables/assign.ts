@@ -4,6 +4,7 @@ import { ExprContainer } from '../../../shared/classes/expr-container'
 import { Expressions } from '../../enum'
 import { Expr } from '../expr'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorExpr } from '../../../shared/visitor'
 
 export class AssignExpr extends Expr {
   static default = new AssignExpr()
@@ -12,13 +13,21 @@ export class AssignExpr extends Expr {
   @field.scalar(z.string())
   identifier: string = ''
 
-  @field.exprContainer({ requiredMsg: 'No se ha establecido un valor a la asignación' })
+  @field.exprContainer({
+    requiredMsg: 'No se ha establecido un valor a la asignación',
+  })
   expression = new ExprContainer(this)
 
   @field.scalar(z.enum(PrimaryType))
   type: PrimaryType = PrimaryType.null
 
-  changeIdentifier(identifier: string) { this.identifier = identifier }
+  changeIdentifier(identifier: string) {
+    this.identifier = identifier
+  }
+
+  accept(visitor: VisitorExpr): void {
+    visitor.visitAssignExpr(this)
+  }
 
   toString(): string {
     return `${this.identifier} = ${this.expression.get()?.toString() ?? '?'}`

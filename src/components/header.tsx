@@ -8,23 +8,28 @@ import { Button } from './ui/button'
 import { Confirm } from './ui/confirm'
 import { useRef, useState } from 'react'
 import { useOutput } from '../hooks/output'
-import { usePersistence } from '../hooks/persistence'
-import { loadSavedFile } from '../lib/serializer/saved-file'
 import { useMenu } from '../stores/menu-store'
-import { useRootStmt } from '../stores/root-stmt'
-import { BlockStmt } from '../lib/blocks/statements/classes/block-stmt'
-import { useBlockDragPositions } from '../hooks/block-drag'
 import { useBlockDragStore } from '../stores/block-drag-store'
+import { useTreeStore } from '../stores/tree-store'
+import { exportStoreFile, importStoreFile } from '../lib/serializer/store-file'
+import { Statements } from '../lib/blocks/statements/enum'
 
 export function Header() {
   const { run, isRunning } = useOutput()
   const toggle = useMenu((state) => state.toggle)
-  const stmt = useRootStmt((state) => state.stmt)
-  const setStmt = useRootStmt((state) => state.setStmt)
-  const positions = useBlockDragPositions()
-  const { exportToFile } = usePersistence(stmt, positions)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
+
+  const handleExport = () => {
+    const data = exportStoreFile()
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `blockscript-${new Date().toISOString().slice(0, 10)}.bs`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -32,12 +37,11 @@ export function Header() {
     const reader = new FileReader()
     reader.onload = () => {
       try {
-        const saved = loadSavedFile(JSON.parse(reader.result as string))
-        if (saved.root) {
-          setStmt(saved.root)
-          useBlockDragStore.setState({
-            positions: [...saved.scatteredStmts, ...saved.scatteredExprs],
-          })
+        const data = JSON.parse(reader.result as string)
+        if (data.version === 1) {
+          importStoreFile(data)
+        } else {
+          alert('Formato de archivo antiguo o inexistente.')
         }
       } catch {
         alert('El archivo no es válido.')
@@ -49,7 +53,14 @@ export function Header() {
 
   const handleNew = () => {
     localStorage.removeItem('blockscript-save')
-    setStmt(new BlockStmt())
+    const newRootId = `stmt=${crypto.randomUUID()}` as const
+    useTreeStore.setState({
+      stmts: {
+        [newRootId]: { id: newRootId, name: Statements.Block, stmts: [] },
+      },
+      exprs: {},
+      rootId: newRootId,
+    })
     useBlockDragStore.setState({ positions: [] })
     setConfirmOpen(false)
   }
@@ -80,7 +91,7 @@ export function Header() {
         <Button
           title='Exportar'
           shape='square'
-          onClick={exportToFile}
+          onClick={handleExport}
           icon={IconDownload}
         />
         <Button

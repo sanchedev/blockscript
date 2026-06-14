@@ -1,16 +1,17 @@
-import type { WaitStmt } from '../../../../lib/blocks/statements'
-import { ExprContainerComp } from '../../ui/expr-container'
-import type { StmtCompProps } from '../types'
+import { useStmtValue } from '../../../../hooks/tree'
+import type { StmtId } from '../../../../lib/ui/stmts'
+import { Statements } from '../../../../lib/blocks/statements/enum'
+import { ExprField } from '../../ui/expr-field'
 import { StmtBlock } from '../../ui/statements/stmt-block'
 
-export function WaitStmtComp(props: StmtCompProps<WaitStmt>) {
+export function WaitStmtComp({ id, disabled }: { id: StmtId; disabled: boolean }) {
+  const [opt] = useStmtValue(id)
+  if (opt == null || opt.name !== Statements.Wait) return null
+
   return (
-    <StmtBlock stmt={props.stmt}>
+    <StmtBlock name={opt.name}>
       <span>esperar</span>
-      <ExprContainerComp
-        container={props.stmt.duration}
-        disabled={props.disabled}
-      />
+      <ExprField exprId={opt.duration} parentId={id} field="duration" disabled={disabled} />
       <span>ms</span>
     </StmtBlock>
   )

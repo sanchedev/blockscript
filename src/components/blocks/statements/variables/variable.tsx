@@ -1,29 +1,29 @@
-import type { VariableStmt } from '../../../../lib/blocks/statements'
-import type { StmtCompProps } from '../types'
-import { ExprContainerComp } from '../../ui/expr-container'
+import { useStmtValue } from '../../../../hooks/tree'
+import type { StmtId } from '../../../../lib/ui/stmts'
+import { Statements } from '../../../../lib/blocks/statements/enum'
+import { ExprField } from '../../ui/expr-field'
 import { Input } from '../../ui/input'
 import clsx from 'clsx'
 import { getStmtGroupColor } from '../../../../lib/blocks/statements/records/groups'
 import { StmtBlock } from '../../ui/statements/stmt-block'
-import { useRenderTree } from '../../../../hooks/render-tree'
 
-export function VariableStmtComp(props: StmtCompProps<VariableStmt>) {
-  const renderTree = useRenderTree()
+export function VariableStmtComp({ id, disabled }: { id: StmtId; disabled: boolean }) {
+  const [opt, setOpt] = useStmtValue(id)
+  if (opt == null || opt.name !== Statements.Variable) return null
 
   const handleChange = (value: string) => {
-    props.stmt.changeIdentifier(value)
-    renderTree()
+    setOpt({ ...opt, identifier: value })
   }
 
   return (
-    <StmtBlock stmt={props.stmt}>
+    <StmtBlock name={opt.name}>
       <span>sea</span>
       <label
         className={clsx(
           'flex rounded-lg font-mono w-fit has-focus-visible:ring-2 h-6',
-          getStmtGroupColor(props.stmt.name).text,
-          getStmtGroupColor(props.stmt.name).bg,
-          getStmtGroupColor(props.stmt.name).ring,
+          getStmtGroupColor(opt.name).text,
+          getStmtGroupColor(opt.name).bg,
+          getStmtGroupColor(opt.name).ring,
         )}>
         <Input
           autoFocus
@@ -32,16 +32,13 @@ export function VariableStmtComp(props: StmtCompProps<VariableStmt>) {
             'p-0 outline-0 text-center w-full text-sm',
             'bg-gray-50 border-x-2 border-slate-300 rounded-lg min-w-12',
           )}
-          value={props.stmt.identifier}
+          value={opt.identifier}
           onChange={(ev) => handleChange(ev.target.value)}
-          style={{ width: props.stmt.identifier.length + 2 + 'ch' }}
+          style={{ width: opt.identifier.length + 2 + 'ch' }}
         />
       </label>
       <span>=</span>
-      <ExprContainerComp
-        container={props.stmt.expression}
-        disabled={props.disabled}
-      />
+      <ExprField exprId={opt.expr} parentId={id} field="expr" disabled={disabled} />
     </StmtBlock>
   )
 }

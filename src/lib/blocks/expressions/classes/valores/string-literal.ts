@@ -3,6 +3,7 @@ import { Expressions } from '../../enum'
 import { Expr } from '../expr'
 import { PrimaryType } from '../../../../types'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorExpr } from '../../../shared/visitor'
 
 export class StringLiteralExpr extends Expr {
   static default = new StringLiteralExpr()
@@ -15,6 +16,10 @@ export class StringLiteralExpr extends Expr {
 
   edit(literal: string) {
     this.literal = literal
+  }
+
+  accept(visitor: VisitorExpr): void {
+    visitor.visitStringExpr(this)
   }
 
   toString(): string {

@@ -4,6 +4,7 @@ import { Expr } from '../expr'
 import { PrimaryType } from '../../../../types'
 import { ExprContainer } from '../../../shared/classes/expr-container'
 import { field } from '../../../shared/field-decorator'
+import type { VisitorExpr } from '../../../shared/visitor'
 
 export class ConcatExpr extends Expr {
   static default = new ConcatExpr()
@@ -36,6 +37,10 @@ export class ConcatExpr extends Expr {
   right = new ExprContainer(this)
 
   type = PrimaryType.string
+
+  accept(visitor: VisitorExpr): void {
+    visitor.visitConcatExpr(this)
+  }
 
   toString(): string {
     return `${this.left.get()?.toString() ?? '?'} + ${this.right.get()?.toString() ?? '?'}`
